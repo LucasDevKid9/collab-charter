@@ -21,7 +21,25 @@ import yaml
 from .parser import CLUSTERS, Item, ParsedPrompt, parse
 
 _HERE = Path(__file__).resolve().parent
-DEFAULT_LEXICON = _HERE / "lexicon.yaml"
+_REPO_ROOT = _HERE.parent.parent
+
+
+def _default_lexicon_path() -> Path:
+    """词库 SSOT 位于 knowledge/lexicon.yaml（见 11.1）。
+
+    解析顺序：仓库根 knowledge/ → 工具目录内就地词库（旧版布局的兼容回退）。
+    新装布局只应命中第一条，回退仅为不破坏历史安装。
+    """
+    ssot = _REPO_ROOT / "knowledge" / "lexicon.yaml"
+    if ssot.is_file():
+        return ssot
+    legacy = _HERE / "lexicon.yaml"
+    if legacy.is_file():
+        return legacy
+    return ssot  # 保持可预测的报错路径
+
+
+DEFAULT_LEXICON = _default_lexicon_path()
 
 
 # ---------------------------------------------------------------------------

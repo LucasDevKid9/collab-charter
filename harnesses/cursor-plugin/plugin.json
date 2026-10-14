@@ -1,8 +1,8 @@
 {
   "name": "collab-charter",
   "displayName": "Collab Charter",
-  "description": "《用户协作宪章》v3.1 的执行内核：信息流路由、冲突裁决、安全闸门、记忆回流，附特征簇提示词诊断器",
-  "version": "3.1.0",
+  "description": "《用户协作宪章》v3.2 的执行内核：信息流路由、冲突裁决、安全闸门、记忆回流，附特征簇提示词诊断器",
+  "version": "3.2.0",
   "author": {
     "name": "collab-charter contributors"
   },

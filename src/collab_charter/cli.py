@@ -9,6 +9,10 @@
     handle <文本>        跑完整管线，打印逐站轨迹与输出
     verify               对宪章做完整性自检（SSOT 契约三项）
     export               导出机器可读版（json / yaml）
+    kb [--stats]         知识库摘要（第十一章：词条数/断链/重复/未验证）
+    mine <需求>          语义场深挖：加权词条 + 分布权重 + 闸门结论
+    field <需求>         潜空间语义场：关联网络/中心性/社群/覆盖缺口
+    anchor               认知锚定·符号求解（第十二章，需 z3-solver）
 """
 
 from __future__ import annotations
@@ -27,7 +31,7 @@ from .session import Session
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="collab-charter",
-        description="用户协作宪章 v3.1 的 Agent 执行内核",
+        description="用户协作宪章 v3.2 的 Agent 执行内核",
     )
     p.add_argument("--charter", help="charter.yaml 路径（默认自动查找）")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -57,6 +61,34 @@ def _build_parser() -> argparse.ArgumentParser:
 
     pe = sub.add_parser("export", help="导出机器可读版")
     pe.add_argument("--format", default="json", choices=["json", "yaml"])
+
+    pk = sub.add_parser("kb", help="知识库摘要（第十一章）")
+    pk.add_argument("--stats", action="store_true", help="只输出机器可读统计")
+
+    pm = sub.add_parser("mine", help="语义场深挖（11.4）")
+    pm.add_argument("requirement", help="需求原文")
+    pm.add_argument("--objective", action="append", default=[], help="任务目标，可多次")
+    pm.add_argument("--state", default="", help="语义状态：探索期/收敛期/创意期/校验期")
+    pm.add_argument("--domain", action="append", default=[], help="限定域，可多次")
+    pm.add_argument("--limit", type=int, default=12)
+    pm.add_argument("--kind", action="append", default=[], help="限定词条类型，可多次")
+    pm.add_argument("--online", action="store_true", help="允许在线扩容（只报闸门结论，10-R4）")
+
+    pf = sub.add_parser("field", help="潜空间语义场（11.3）")
+    pf.add_argument("requirement", help="需求原文")
+    pf.add_argument("--objective", action="append", default=[], help="任务目标，可多次")
+    pf.add_argument("--state", default="", help="语义状态：探索期/收敛期/创意期/校验期")
+    pf.add_argument("--domain", action="append", default=[], help="限定域，可多次")
+    pf.add_argument("--limit", type=int, default=30)
+
+    pa = sub.add_parser("anchor", help="认知锚定·符号求解（第十二章，需 z3-solver）")
+    pa.add_argument("--declare", help="变量声明：变量:含义，逗号分隔")
+    pa.add_argument("--constraints", help="硬约束，分号分隔")
+    pa.add_argument("--decisions", help="候选档位：档名:谓词，分号分隔")
+    pa.add_argument("--rounds", default="", help="多轮对齐，| 分隔")
+    pa.add_argument("--max-solutions", type=int, default=100)
+    pa.add_argument("--as-json", action="store_true")
+    pa.add_argument("--selftest", action="store_true", help="跑内置验收")
     return p
 
 
@@ -185,6 +217,138 @@ def cmd_export(charter: Charter, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_kb(args: argparse.Namespace) -> int:
+    from .lexicon import KnowledgeBase
+
+    kb = KnowledgeBase.load()
+    s = kb.stats()
+    if args.stats:
+        print(json.dumps({**s, "duplicate_terms": kb.duplicate_terms},
+                         ensure_ascii=False, indent=2))
+        return 0
+    print(f"知识库 digest：{s['digest']}")
+    print(f"词条总数    ：{s['entry_count']}")
+    print(f"按类型      ：{s['kinds']}")
+    print(f"按来源文件  ：{s['files']}")
+    dup = kb.duplicate_terms
+    print(f"跨文件同名  ：{len(dup)}"
+          + (f" —— {dup}" if dup else ""))
+    print(f"未验证词条  ：{s['unverified_count']}"
+          + (f" —— {kb.unverified[:10]}{' …' if len(kb.unverified) > 10 else ''}"
+             if kb.unverified else ""))
+    return 0
+
+
+def cmd_mine(charter: Charter, args: argparse.Namespace) -> int:
+    from .lexicon import MiningRequest, mine
+
+    result = mine(
+        MiningRequest(
+            requirement=args.requirement,
+            task_objectives=list(args.objective),
+            semantic_state=args.state,
+            domains=list(args.domain),
+            limit=args.limit,
+            kinds=list(args.kind) or None,
+            allow_online=args.online,
+        ),
+        charter=charter,
+    )
+    print(f"语义状态：{result.semantic_state or '（中性）'}   策略：{result.policy.get('note', '')}")
+    print(f"空间指纹：{result.space_digest}")
+    print()
+    print(f"{'词条':<10}{'类型':<12}{'得分':>8}{'分布权重':>10}  闸门")
+    for e in result.entries:
+        gate = e.gate["verdict"] if e.gate else "-"
+        print(f"{e.term:<10}{e.kind:<12}{e.score:>8.3f}{e.weight:>10.3f}  {gate}")
+        if e.suggestion.get("example"):
+            print(f"          建议：{e.suggestion['example']}")
+    if result.field.gaps:
+        print()
+        print(f"覆盖缺口：{result.field.gaps}")
+    for w in result.warnings:
+        print(f"[警告] {w}")
+    if result.online_expansion and result.online_expansion.get("requested"):
+        oe = result.online_expansion
+        print(f"[在线扩容] 未执行（{oe['confirmation_clause']}）："
+              f"需用户确认={oe['requires_user_confirmation']}，"
+              f"闸门={oe['gate_verdict']}")
+    return 0
+
+
+def cmd_field(charter: Charter, args: argparse.Namespace) -> int:
+    from .lexicon import MiningRequest, mine
+
+    result = mine(
+        MiningRequest(
+            requirement=args.requirement,
+            task_objectives=list(args.objective),
+            semantic_state=args.state,
+            domains=list(args.domain),
+            limit=args.limit,
+        ),
+        charter=charter,
+    )
+    f = result.field
+    m = f.metrics
+    print(f"节点 {int(m['node_count'])} · 边 {int(m['edge_count'])} · "
+          f"密度 {m['density']:.3f} · 模块度 {m['modularity']:.3f} · "
+          f"社群 {int(m['community_count'])}")
+    print()
+    print("中心性 Top5：")
+    for eid, c in f.top_central(5):
+        print(f"  {f.terms[eid]:<10}{c:.3f}  社群#{f.community_of(eid)}")
+    print()
+    print("社群：")
+    for cid, members in sorted(f.communities.items()):
+        names = [f.terms[m] for m in members]
+        print(f"  #{cid}：{'、'.join(names)}")
+    if f.gaps:
+        print()
+        print(f"覆盖缺口：{f.gaps}")
+    for w in result.warnings:
+        print(f"[警告] {w}")
+    return 0
+
+
+def cmd_anchor(args: argparse.Namespace) -> int:
+    from .anchor import solve
+
+    if args.selftest:
+        from .anchor import selftest
+
+        return 0 if selftest() else 1
+    try:
+        result = solve(
+            declare=args.declare or "",
+            constraints=args.constraints or "",
+            decisions=args.decisions or "",
+            rounds=args.rounds,
+            max_solutions=args.max_solutions,
+        )
+    except Exception as exc:  # AnchorError / AnchorUnavailableError 均走友好路径
+        print(f"输入错误：{exc}", file=sys.stderr)
+        return 2
+
+    if args.as_json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    for r in result["rounds"]:
+        print(f"\n===== {r['round']} =====")
+        print(f"满足解总数: {r['solutions']}" + ("（已截断）" if r["truncated"] else ""))
+        print("档位票数: " + "  ".join(f"{k}={v}" for k, v in r["votes"].items()))
+        if r["solutions"] > 0:
+            print(f">>> 推荐档: {r['recommend']}")
+        for w in r["warnings"]:
+            print(f"[警告] {w}")
+    if len(result["rounds"]) >= 2:
+        print("\n===== 多轮对齐对比 =====")
+        print(f"第一轮推荐: {result['rounds'][0]['recommend']}  "
+              f"末轮推荐: {result['rounds'][-1]['recommend']}")
+        print(f">>> {result['drift_note'] or '两轮推荐一致，标准收敛，结论可钉住。'}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -202,6 +366,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "handle": lambda a: cmd_handle(charter, a),
         "verify": lambda a: cmd_verify(charter),
         "export": lambda a: cmd_export(charter, a),
+        "kb": lambda a: cmd_kb(a),
+        "mine": lambda a: cmd_mine(charter, a),
+        "field": lambda a: cmd_field(charter, a),
+        "anchor": lambda a: cmd_anchor(a),
     }
     return table[args.cmd](args)
 

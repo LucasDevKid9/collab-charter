@@ -32,6 +32,8 @@ description: 当任何会话开始时使用——确立如何发现并调用本�
 | 「帮我做 X」「我们来搭个东西」 | `info-flow-protocol`（确立走全量还是快速通道） |
 | 图像提示词创作、优化、诊断 | `feature-cluster-syntax` |
 | 需要深度调研、多方核实 | `deep-research` |
+| 多条件权衡、结论摇摆、要求可复现推理链 | `cognitive-anchor`（符号求解，第十二章） |
+| 需要找依据词条、分析词条间关系 | MCP 工具 `lexicon_search` / `lexicon_mine` / `semantic_field`（第十一章） |
 | 要新增或修改本仓库的技能 | `authoring-skills` |
 | 会话刚开始、要确认哪些条款可执行 | MCP 工具 `charter_receipt` |
 

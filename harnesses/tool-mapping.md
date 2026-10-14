@@ -20,6 +20,10 @@
 | 诊断图像提示词 | `fcslint_analyze` | 同名 MCP 工具 | `PYTHONPATH=tools python3 -m fcslint "<提示词>"` |
 | 沉淀一条结论 | `memory_deposit` | 同名 MCP 工具 | 写入记忆文件（见 0.6-O1） |
 | 激活历史记忆 | `memory_recall` | 同名 MCP 工具 | 读记忆文件（见 0.6-O2） |
+| 多条件权衡硬算 | `anchor_solve` | 同名 MCP 工具 | `PYTHONPATH=src python3 -m collab_charter.anchor --declare …`（需 `pip install collab-charter[anchor]`） |
+| 检索知识库词条 | `lexicon_search` | 同名 MCP 工具 | `python3 -m collab_charter.cli kb` 查看库容后读 `knowledge/*.yaml` |
+| 按需求深挖词条 | `lexicon_mine` | 同名 MCP 工具 | `python3 -m collab_charter.cli mine "<需求>" --state 收敛期` |
+| 分析语义场网络 | `semantic_field` | 同名 MCP 工具 | `python3 -m collab_charter.cli field "<需求>" --state 收敛期` |
 
 ## MCP 接入片段
 
@@ -51,6 +55,7 @@ Claude Code 的插件清单（`harnesses/claude-plugin/plugin.json`）已内置�
 | 本地文件读写 | 6-R1 / R2 | 请用户粘贴目标内容；显式说明「我读不到你的本地文件」 |
 | 联网核实 | 5-R2 / 8-R2 | 标注「待验证」，并给出建议核实的关键词与预期来源 |
 | 子代理并行 | 7-R3 | 用同一上下文内串行执行建构/质疑/验证三角，并说明已降级 |
+| z3 求解器（anchor 可选依赖） | 12.1-A1 | 显式说明「符号锚定不可用」，改用分档枚举表人工推演，并声明未经求解器验证 |
 
 ## 移植到新平台（三步）
 

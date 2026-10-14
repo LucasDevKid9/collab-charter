@@ -70,6 +70,25 @@ CLAUSE_IMPLEMENTATION: dict[str, str] = {
     "10-R2": "gates",
     "10-R3": "gates",
     "10-R4": "gates",
+    # 第十一章 知识库与语义场（v3.2；模块为包内子模块，用点号路径）
+    "11.1-K1": "lexicon.kb",      # 加载与零代码扩容
+    "11.1-K2": "lexicon.kb",      # 溯源与未验证名单
+    "11.1-K3": "lexicon.kb",      # 摘要与 digest
+    "11.2-V1": "lexicon.vectors",  # 向量征量空间与空间指纹
+    "11.2-V2": "lexicon.mine",     # 分布权重
+    "11.2-V3": "lexicon.vectors",  # 任务期临时建构、用后即弃
+    "11.3-F1": "lexicon.field",    # 关联网络
+    "11.3-F2": "lexicon.field",    # 覆盖缺口
+    "11.3-F3": "lexicon.kb",       # 释义以来源为准
+    "11.4-M1": "lexicon.mine",     # 闸门结论
+    "11.4-M2": "lexicon.mine",     # 在线扩容只报不执行
+    "11.4-M3": "lexicon.mine",     # 语义状态策略
+    # 第十二章 符号锚定（v3.2；cognitive-anchor v2.0 并入）
+    "12.1-A1": "anchor.solver",    # 结论来自求解器
+    "12.1-A2": "anchor.solver",    # AST 白名单
+    "12.1-A3": "anchor.solver",    # 警告原样转告
+    "12.1-A4": "anchor.solver",    # 漂移必须提示
+    "12.1-A5": "anchor.solver",    # 未覆盖解数必须报告
 }
 
 # ---------------------------------------------------------------------------
@@ -120,6 +139,24 @@ TEST_COVERAGE: dict[str, str] = {
     "9-W6": "test_快捷词被识别",
     "10-R1": "test_每种组合都有裁决",
     "10-R3": "test_禁外发一律拦截",
+    # 第十一章 / 第十二章（v3.2）
+    "11.1-K1": "test_零代码扩容",
+    "11.1-K2": "test_不可溯源条目进入名单",
+    "11.1-K3": "test_digest_稳定且随内容变化",
+    "11.2-V1": "test_空间指纹随上下文变化",
+    "11.2-V2": "test_分布权重归一",
+    "11.2-V3": "test_空间任务期临时建构用后即弃",
+    "11.3-F1": "test_关联网络与社群",
+    "11.3-F2": "test_覆盖缺口可操作",
+    "11.3-F3": "test_检索工具返回可溯源字段",
+    "11.4-M1": "test_高危条目闸门_block",
+    "11.4-M2": "test_在线扩容只报不执行",
+    "11.4-M3": "test_语义状态策略表齐全",
+    "12.1-A1": "test_第一轮推荐观望",
+    "12.1-A2": "test_逃逸构造一律被拒",
+    "12.1-A3": "test_无解轮给出建议",
+    "12.1-A4": "test_solve_检测漂移并提示标准未稳",
+    "12.1-A5": "test_档位未覆盖的解被计数",
 }
 
 
@@ -134,7 +171,9 @@ def test_声明实现的条款真实存在(charter: Charter, cid: str) -> None:
 
 @pytest.mark.parametrize("cid,module", sorted(CLAUSE_IMPLEMENTATION.items()))
 def test_执行条款的模块存在且可导入(cid: str, module: str) -> None:
-    assert (ROOT / "src" / "collab_charter" / f"{module}.py").is_file(), f"{module}.py 不存在"
+    """模块可以是单文件（gates）或包内子模块（lexicon.kb / anchor.solver）。"""
+    rel = Path(*module.split("."))
+    assert (ROOT / "src" / "collab_charter" / f"{rel}.py").is_file(), f"{module}.py 不存在"
     importlib.import_module(f"collab_charter.{module}")
 
 
@@ -165,10 +204,14 @@ def test_关键条款都有指名测试(charter: Charter, request: pytest.Fixtur
 
 
 def test_条款覆盖率达标(charter: Charter) -> None:
-    """已实现条款占可执行条款的比例。可执行 = 带 R/I/C/O/V/W/P 类型的条款。"""
+    """已实现条款占可执行条款的比例。
+
+    可执行 = 带规则型类型的条款：R/I/C/O/V/W/P（前三版）+
+    K/F/M/A（v3.2 新增：知识库/语义场/深挖/锚定，同为可机械检出的规则）。
+    """
     executable = [
         c for c in charter
-        if c.kind in {"R", "I", "C", "O", "V", "W", "P"}
+        if c.kind in {"R", "I", "C", "O", "V", "W", "P", "K", "F", "M", "A"}
     ]
     implemented = [c for c in executable if c.id in CLAUSE_IMPLEMENTATION]
     ratio = len(implemented) / max(1, len(executable))

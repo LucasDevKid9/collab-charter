@@ -31,9 +31,19 @@ from .memory import MemoryNode, MemoryStore
 from .selfcheck import SelfCheckItem, SelfCheckReport, SelfCheckRunner
 from .router import PipelineStage, Route, Router
 from .session import Session, SessionOutcome
+from .anchor import solve as anchor_solve
+from .lexicon import (
+    KnowledgeBase,
+    KnowledgeBaseError,
+    MiningRequest,
+    MiningResult,
+    StatePolicy,
+    SemanticField,
+    MeasureSpace,
+)
 
-__version__ = "3.1.0"
-__charter_version__ = "3.1"
+__version__ = "3.2.0"
+__charter_version__ = "3.2"
 
 __all__ = [
     "__version__",
@@ -75,4 +85,14 @@ __all__ = [
     # session
     "Session",
     "SessionOutcome",
+    # anchor（12.1 符号锚定，cognitive-anchor v2.0 并入）
+    "anchor_solve",
+    # lexicon（11 知识库与语义场）
+    "KnowledgeBase",
+    "KnowledgeBaseError",
+    "MeasureSpace",
+    "SemanticField",
+    "MiningRequest",
+    "MiningResult",
+    "StatePolicy",
 ]

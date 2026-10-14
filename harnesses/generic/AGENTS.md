@@ -6,7 +6,7 @@
 
 ## 这是什么
 
-本仓库是《用户协作宪章》v3.1 的执行内核。它把用户的协作规范变成可调用、可验证的
+本仓库是《用户协作宪章》v3.2 的执行内核。它把用户的协作规范变成可调用、可验证的
 运行层：八站信息流管线、五级优先级、冲突裁决规则引擎、安全闸门、记忆回流，
 以及对图像提示词的《模块化特征簇标记语法》诊断。
 
@@ -65,16 +65,17 @@ python3 -m collab_charter.cli handle "<用户请求原文>" \
 | 结构化诊断结果 | `PYTHONPATH=tools python3 -m fcslint --json "<提示词>"` |
 | 宪章完整性自检 | `PYTHONPATH=src python3 -m collab_charter.cli verify` |
 
-若你有 MCP 能力，直接接入 `python3 interfaces/mcp_server.py` 用那 10 个工具，比 CLI 更省 token。
+若你有 MCP 能力，直接接入 `python3 interfaces/mcp_server.py` 用那 14 个工具，比 CLI 更省 token。
 
 ### 5. 技能
 
-`skills/` 下五个技能的 `description` 字段写明了各自的触发条件。按需加载：
+`skills/` 下六个技能的 `description` 字段写明了各自的触发条件。按需加载：
 
 - `using-charter` —— 入口，确立技能查验规则
 - `info-flow-protocol` —— 第〇章的可操作版（路由、优先级、冲突、自检、快捷词）
 - `feature-cluster-syntax` —— 图像提示词创作/优化/诊断
 - `deep-research` —— 多信源核实、对抗验证、证据账本
+- `cognitive-anchor` —— 多条件权衡符号求解（第十二章，需 z3-solver）
 - `authoring-skills` —— 要新增或修改技能时
 
 ## 三条硬规矩

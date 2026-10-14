@@ -46,14 +46,22 @@ def test_未知方法返回_32601(registry: ToolRegistry) -> None:
 
 
 # -- 工具列表 --------------------------------------------------------------
-def test_十个工具都已注册(registry: ToolRegistry) -> None:
+def test_十四个工具都已注册(registry: ToolRegistry) -> None:
     tools = _call(registry, "tools/list")["result"]["tools"]
     names = {t["name"] for t in tools}
     assert names == {
         "charter_clause", "charter_clauses", "charter_receipt", "charter_route",
         "charter_handle", "charter_arbitrate", "charter_gate", "fcslint_analyze",
         "memory_deposit", "memory_recall",
+        # v3.2 新增：符号锚定（12.1）+ 知识库与语义场（11）
+        "anchor_solve", "lexicon_search", "lexicon_mine", "semantic_field",
     }
+
+
+def test_server_版本与内核一致(registry: ToolRegistry) -> None:
+    assert mcp_server.SERVER_VERSION == "3.2.0"
+    resp = _call(registry, "initialize")
+    assert resp["result"]["serverInfo"]["version"] == "3.2.0"
 
 
 def test_每个工具都有描述与输入_schema(registry: ToolRegistry) -> None:
@@ -118,6 +126,65 @@ def test_调用_fcslint_analyze(registry: ToolRegistry) -> None:
         "prompt": "古早立绘, 赛璐璐平涂, 随机种子, 4:3"}}))
     assert "summary" in data
     assert data["summary"]["grade"]
+
+
+def test_调用_anchor_solve_结论来自求解器(registry: ToolRegistry) -> None:
+    data = _payload(_call(registry, "tools/call", {"name": "anchor_solve", "arguments": {
+        "declare": "x:可行性,y:预算充足",
+        "constraints": "x+y>=1",
+        "decisions": "做:x+y==2; 不做:x+y<2",
+        "rounds": "|y==0",
+    }}))
+    assert data["schema_version"] == "cognitive-anchor.solve/2.0"
+    assert len(data["rounds"]) == 2
+    assert data["rounds"][0]["recommend"] == "不做"
+    assert data["drift"] is False
+    assert data["clauses"] == ["12.1-A1", "12.1-A2", "12.1-A3", "12.1-A4", "12.1-A5"]
+
+
+def test_调用_lexicon_search(registry: ToolRegistry) -> None:
+    data = _payload(_call(registry, "tools/call", {"name": "lexicon_search", "arguments": {
+        "query": "谷圈", "limit": 5}}))
+    assert data["count"] >= 1
+    assert data["kb_digest"]
+    assert any(i["term"] == "谷圈" for i in data["items"])
+
+
+def test_调用_lexicon_mine_返回分布权重与闸门(registry: ToolRegistry) -> None:
+    data = _payload(_call(registry, "tools/call", {"name": "lexicon_mine", "arguments": {
+        "requirement": "谷圈 痛包 晒谷",
+        "task_objectives": ["整理术语"],
+        "semantic_state": "收敛期",
+        "limit": 6,
+    }}))
+    assert data["entries"]
+    total_w = sum(e["weight"] for e in data["entries"])
+    assert abs(total_w - 1.0) < 1e-6, "分布权重必须归一（11.2-V2）"
+    assert data["space_digest"]
+    assert "field" in data
+
+
+def test_调用_lexicon_mine_高危条目被闸门拦截(registry: ToolRegistry) -> None:
+    data = _payload(_call(registry, "tools/call", {"name": "lexicon_mine", "arguments": {
+        "requirement": "开盒 人肉搜索",
+        "limit": 8,
+    }}))
+    blocked = [e for e in data["entries"] if e["gate"] and e["gate"]["verdict"] == "block"]
+    assert blocked, "高危敏感词条必须带 block 闸门结论（11.4-M1）"
+
+
+def test_调用_semantic_field_返回社群与缺口(registry: ToolRegistry) -> None:
+    data = _payload(_call(registry, "tools/call", {"name": "semantic_field", "arguments": {
+        "requirement": "谷圈 痛包 吧唧 吃谷 晒谷",
+        "task_objectives": ["整理徽章收藏圈的术语"],
+        "semantic_state": "收敛期",
+        "limit": 10,
+    }}))
+    f = data["field"]
+    assert f["metrics"]["node_count"] >= 3
+    assert f["metrics"]["modularity"] >= 0.0
+    assert "gaps" in f
+    assert "centrality" in f
 
 
 def test_记忆沉淀与检索闭环(registry: ToolRegistry) -> None:

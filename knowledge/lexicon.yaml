@@ -1,7 +1,8 @@
 # ============================================================================
-# 特征簇词条知识库
+# 特征簇词条知识库（单一事实源 · 宪章 11.1-K1）
 # ----------------------------------------------------------------------------
-# 支撑 fcslint 的规则判定与评分。数据来源：
+# 支撑 fcslint 的规则判定与评分，同时是语义场引擎（collab_charter.lexicon）
+# 的语料来源。数据来源：
 #   《模块化特征簇标记语法》2.1 六大功能簇 / 2.3 词条类型学 / 6.1 媒介链路溯源
 #   + 附录 A 三个案例的全部词条
 #   + cognitive-core v3.1 references/style-library.md 的风格维度
@@ -11,9 +12,28 @@
 #   kind    : entity 实体视觉 / abstract 抽象概念 / tech 技术参数
 #   mapping : high 高映射 / mid 中映射 / low 低映射
 #   chain   : 媒介链路环节（draw/digitize/display/archive），无则离链
+#   invalid : true 表示该词条被规范显式禁止（如 seed 破坏可复现性）
+#
+# 语义场扩展字段（均可选，缺省时由 collab_charter.lexicon.kb 补默认值）：
+#   id        : 稳定标识，缺省由 term 生成；一经发布不得改写（SSOT 契约 2）
+#   aliases   : 别名/英文写法，检索与向量特征都算
+#   domain    : 语义域标签列表，如 [ACG, 影像, 2000s]
+#   era       : 时代标签，如 2000s / 2010s
+#   tags      : 自由标签，参与语义场关联边
+#   related   : 关联条目 id 列表（显式关联边）
+#   conflicts : 冲突条目 id 列表（显式冲突边，断边）
+#   source    : 来源（11.1-K2 要求）
+#   confidence: 高 / 中 / 低（11.1-K2 要求）
+#   sensitivity/permission : 安全元数据，缺省 公开/可输出（11.4-M1）
 # ============================================================================
 
 version: 1
+
+meta:
+  updated: "2026-10"
+  source: 《模块化特征簇标记语法》2.1 六大功能簇 / 2.3 词条类型学 / 6.1 媒介链路溯源 + 附录 A 三个案例的全部词条 + cognitive-core v3.1 references/style-library.md 的风格维度
+  confidence: 高
+  note: 条目级 source/confidence 缺失时回退到本文件级来源（11.1-K2）。
 
 clusters:
   subject:    { zh: 主体实体, order: 1, desc: 画面主体与构图取景，置于最前 }

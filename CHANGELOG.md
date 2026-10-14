@@ -1,7 +1,75 @@
 # 变更日志
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
-版本号与宪章版本对齐：内核 `3.1.x` 对应宪章 `v3.1`。
+版本号与宪章版本对齐：内核 `3.2.x` 对应宪章 `v3.2`。
+
+## [3.2.0] — 2026-10
+
+宪章 v3.2：新增第十一章「知识库与语义场」与第十二章「符号锚定」；
+cognitive-anchor v2.0 求解器并入本仓库；词库升级为可扩容知识库。
+
+### 宪章层
+- `charter/charter.yaml` —— 条款数 73 → 90；新增第十一章（11.1-K1..K3 / 11.2-V1..V3 /
+  11.3-F1..F3 / 11.4-M1..M3，共 13 条）与第十二章（12.1-A1..A5，共 5 条）
+- `charter/CHARTER.md` —— 人读版同步新增两章
+- `charter/compact.md` —— MCP 工具数 10 → 14
+
+### 知识层（新增，第十一章）
+- `knowledge/lexicon.yaml` —— 由 `tools/fcslint/lexicon.yaml` 迁入（git mv 保留历史），
+  136 条；fcslint 以解析式定位 SSOT，旧路径回退兼容
+- `knowledge/styles.yaml` —— 46 条风格域（覆盖 lexicon style_domain_terms 全部 15 词并扩展）
+- `knowledge/subcultures.yaml` —— 148 条互联网亚文化（meme / slang / register /
+  community / practice 五类，带 gloss / register / era / platforms / fcs_hint /
+  source / confidence；「开盒」「人肉搜索」标 高危/禁外发 演示 11.4-M1 闸门）
+- 全库 330 条；related/conflicts 断链即错；跨文件同名词检出；未验证条目名单
+
+### 内核层 · lexicon 包（新增）
+- `lexicon/kb.py` —— 多文件加载（零代码扩容）、断链校验、digest、检索、统计
+- `lexicon/vectors.py` —— 向量征量空间：精确稀疏特征向量（放弃 hashing trick，
+  330 条规模下碰撞噪声可观测）、四层特征体系（词元 1.0 / 单字 0.35 / 元特征 0.6 /
+  释义 0.35）+ IDF + 上下文增益 1.6、查询侧词表前向最大匹配分词、
+  空间指纹 = sha256(版本|kb digest|上下文 digest)、任务期临时建构用后即弃
+- `lexicon/field.py` —— 潜空间语义场：关联网络（cosine≥0.10 + related 显式边 0.5 +
+  conflicts 断边）、幂迭代中心性（60 轮均匀初始化确定性）、标签传播社群
+  （中心性降序→id 升序固定更新）、覆盖缺口（停用字过滤）、密度+模块度
+- `lexicon/mine.py` —— 深挖引擎：语义状态策略表（探索/发散/收敛/聚焦/创意/校验 +
+  中性回落）、评分 = 相似度×先验×域增益×类型增益 + 探索期覆盖加分、MMR 去重选择、
+  跨文件同词条去重、invalid 剔除、分布权重（11.2-V2）、特征级归因、
+  3×3 闸门结论（11.4-M1）、在线扩容只报不执行（11.4-M2）
+
+### 内核层 · anchor 包（新增，cognitive-anchor v2.0 并入）
+- `anchor/solver.py` —— z3 全枚举求解器原样移植：AST 白名单沙箱（阻断属性访问 /
+  Lambda / 下标等逃逸）、全角归一化、档位投票、变量频率、分支博弈表、
+  多轮漂移检测；schema 保持 `cognitive-anchor.solve/2.0` 兼容
+- `anchor/cli.py` + `anchor/__main__.py` —— 参数与原仓库 `scripts/solve.py` 完全兼容
+- `tools/anchor/solve.py` —— 兼容 shim（只转发，不承载逻辑）
+- z3-solver 设为可选依赖：`pip install collab-charter[anchor]`
+- 18 项内置断言与 pytest 共用 `selftest_checks()`，两套验收不可能漂移
+
+### 接口层
+- MCP 工具 10 → 14：新增 `anchor_solve` / `lexicon_search` / `lexicon_mine` /
+  `semantic_field`；SERVER_VERSION 3.1.0 → 3.2.0
+
+### CLI
+- 新增子命令 `kb` / `mine` / `field` / `anchor`
+
+### 验证层
+- 测试 266 → 368：新增 `test_lexicon.py`（34 项）、`test_anchor.py`（28 项）、
+  `test_mcp.py` 增补 7 项（含 4 个新工具端到端调用与版本一致性）
+- `test_traceability.py` 接入 17 条新条款的「条款→模块→测试」映射；
+  可执行条款类型集扩展 K/F/M/A；模块路径支持包子模块（lexicon.kb / anchor.solver）
+
+### 文档
+- 新增 `docs/SEMANTIC-FIELD.md` —— 知识库 / 向量征量空间 / 分布权重 / 潜空间语义场的
+  深度说明与诚实边界
+- 重写 `docs/ARCHITECTURE.md` —— 七层仓库全景、依赖关系图、七个关键设计决策
+- README / TRACEABILITY / tool-mapping 同步更新
+
+### 已知边界（不掩盖）
+- 语义理解基于词典子串与 n-gram 统计，无神经嵌入；同义改写可能漏检
+- 精确稀疏向量在千条级从容，万级需近似最近邻——未实现，不假装支持
+- 在线语料检索未实现（11.4-M2 只定义闸门口径）；`allow_online` 只产生报告
+- z3 为可选依赖：未安装时符号锚定工具不可用，内核其余部分正常
 
 ## [3.1.0] — 2026-10-14
 

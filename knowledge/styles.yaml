@@ -1,0 +1,268 @@
+# ============================================================================
+# 风格库（单一事实源 · 宪章 11.1-K1）
+# ----------------------------------------------------------------------------
+# 风格域词条：进入《模块化特征簇标记语法》提示词时，归入「光影氛围」簇的
+# 抽象类（权重上限 0.8，见规范 3.2 风格域数量法则 / 3.5 权重梯度）。
+# 本文件覆盖 lexicon.yaml style_domain_terms 的全部 15 个词条并扩展。
+#
+# 字段说明：
+#   id         : 稳定标识（SSOT 契约 2：发布后不得改写含义）
+#   term       : 主词条
+#   aliases    : 别名 / 英文写法
+#   markers    : 该风格的代表性视觉标记（供语义场关联与扩充建议）
+#   conflicts  : 气质互斥的风格 id
+#   fcs_hint   : 进入特征簇提示词时的映射建议
+#   source     : 来源（11.1-K2）
+#   confidence: 高 / 中 / 低（11.1-K2）
+#   sensitivity/permission : 安全元数据，缺省 公开/可输出（11.4-M1）
+# ============================================================================
+
+version: 1
+
+meta:
+  updated: "2026-10"
+  source: 公开艺术史与网络美学资料整理；与 lexicon.yaml style_domain_terms 对齐
+  note: >
+    风格域在提示词中只作气质约束，不承担画面主干；多个风格域并存会触发
+    fcslint FCS006（风格域数量法则）与 5.4 控制力扣分。
+
+kinds:
+  style: {zh: 风格域, fcs_cluster: light, fcs_kind: abstract, weight_max: 0.8}
+
+entries:
+  # ---- 网络美学 / cores 家族 -------------------------------------------
+  - {id: style_cyberpunk, term: 赛博朋克, aliases: [cyberpunk, 电玩朋克], era: 1980s-至今,
+     domain: [影像, 科幻, 网络美学], markers: [霓虹, 雨夜, 摩天楼, 义体, 全息广告, 故障艺术],
+     conflicts: [style_pastoral], related: [style_vaporwave, style_y2k, style_digitalwaste],     desc: 高科技与低生活质量的并置，霓虹雨夜与巨型企业建筑是标志意象,
+     source: 科幻类型学通行定义（《神经漫游者》1984 开创）, confidence: 高}
+  - {id: style_vaporwave, term: 蒸汽波, aliases: [vaporwave], era: 2010s,
+     domain: [网络美学, 音乐, 设计], markers: [石膏像, 棕榈树, 早间网格, Windows95界面, 日文假名],
+     conflicts: [style_baroque], related: [style_cyberpunk, style_y2k, style_dreamcore, style_seapunk],
+     desc: 对 80-90 年代消费电子与广告美学的戏谑拼贴，紫青渐变与网格地面为标志,
+     source: 2010 年代初网络艺术运动，公开资料通行, confidence: 高}
+  - {id: style_y2k, term: Y2K, aliases: [千禧年科技风], era: 1999-2003,
+     domain: [网络美学, 时尚, 设计], markers: [金属光泽, 水滴背景, 低多边形, 泡泡字体, 透明材质],
+     related: [style_vaporwave, style_millennium, style_pixelart, style_lowpoly],
+     desc: 千禧年科技乐观主义审美，液态金属与透明塑料质感,
+     source: 时尚与设计史通行分期, confidence: 高}
+  - {id: style_millennium, term: 千禧, aliases: [千禧风, 千禧年], era: 2000s,
+     domain: [华语流行文化, 影像], markers: [影楼写真, VCD质感, CD封面设计, 非主流字体],
+     related: [style_y2k, style_vaporwave],
+     desc: 千禧年华语大众流行视觉质感，与 Y2K 的科技感相对偏生活化,
+     source: 华语流行文化观察, confidence: 中}
+  - {id: style_dreamcore, term: 梦核, aliases: [dreamcore], era: 2010s,
+     domain: [网络美学, cores家族], markers: [走廊, 栅栏, 门, 大眼睛玩偶, 低对比, 空景],
+     conflicts: [style_documentary], related: [style_weirdcore, style_childcore, style_traumacore],
+     desc: 梦境质感：熟悉场景中的异样感，柔和低对比与空旷构图,
+     source: 2010 年代 Tumblr 网络美学社群，公开资料通行, confidence: 高}
+  - {id: style_weirdcore, term: 怪核, aliases: [weirdcore], era: 2010s,
+     domain: [网络美学, cores家族], markers: [地下室, 拼贴, 文字水印, 陌生化场景],
+     related: [style_dreamcore, style_digitalwaste, style_traumacore],
+     desc: 陌生化与不安感：日常图像的错位拼接与无意义文字,
+     source: 2010 年代网络美学社群，公开资料通行, confidence: 高}
+  - {id: style_traumacore, term: 伤核, aliases: [traumacore], era: 2010s,
+     domain: [网络美学, cores家族], markers: [童年意象, 暗面记忆, 血, 绷带],
+     related: [style_dreamcore, style_weirdcore],
+     desc: 创伤记忆审美：童年意象与疼痛符号的并置,
+     source: 2010 年代网络美学社群, confidence: 中}
+  - {id: style_childcore, term: 童核, aliases: [childcore], era: 2010s,
+     domain: [网络美学, cores家族], markers: [儿童节目, 糖果色, 玩具, 卡通字体],
+     related: [style_dreamcore],
+     desc: 童年节目与玩具的明亮质感， cores 家族中较柔和的一支,
+     source: 2010 年代网络美学社群, confidence: 中}
+  - {id: style_digitalwaste, term: 数字废土, aliases: [digitalwaste, 数据废土], era: 2010s,
+     domain: [网络美学, cores家族], markers: [损坏文件, 丢失数据, 渲染错误, 噪点云],
+     related: [style_weirdcore, style_glitch, style_postsurre],
+     desc: 数字遗迹审美：损坏、丢失与错误本身成为画面内容,
+     source: 网络美学社群通行概念, confidence: 中}
+  - {id: style_netart, term: 网络核艺术, aliases: [netcore], era: 2010s,
+     domain: [网络美学, cores家族], markers: [互联网原生图像, 水印, 早期网页元素],
+     related: [style_dreamcore, style_weirdcore, style_digitalwaste],
+     desc: 以互联网原生图像为素材的亚文化美学总称，与 cores 家族同源,
+     source: lexicon.yaml style_domain_terms 原始词条，网络美学观察, confidence: 中}
+
+  # ---- 艺术史脉络 --------------------------------------------------------
+  - {id: style_surreal, term: 超现实主义, aliases: [surrealism], era: 1920s-至今,
+     domain: [艺术史, 影像], markers: [梦境逻辑, 并置, 达利式融化, 马格利特式错置],
+     related: [style_postsurre],
+     desc: 1924 年布勒东宣言开创，以梦境逻辑组织视觉,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_postsurre, term: 后超现实主义, aliases: [后超现实], era: 2010s-至今,
+     domain: [艺术史, 网络美学], markers: [数字拼贴, 生成图像, 错置日常],
+     related: [style_surreal, style_digitalwaste],
+     desc: 数字语境下的超现实主义复兴，AI 与拼贴是主要手段,
+     source: lexicon.yaml style_domain_terms 原始词条，当代艺术评论通行用法, confidence: 中}
+  - {id: style_homemovie, term: 私影像cult风, aliases: [私影像, homemovie cult], era: 1970s-1990s,
+     domain: [影像, 亚文化], markers: [8mm胶片, 家庭录像, 日期水印, 过曝, 手持晃动],
+     conflicts: [style_documentary], related: [style_lofi, style_snapshot],
+     desc: 廉价家用摄影机质感与 cult 片放映痕迹的混合,
+     source: lexicon.yaml style_domain_terms 原始词条，影像文化观察, confidence: 中}
+  - {id: style_shaw, term: 邵氏, aliases: [邵氏武侠,  Shaw Brothers], era: 1960s-1970s,
+     domain: [华语影像], markers: [布景舞台感, 浓艳配色, 塑料道具, 快速剪辑],
+     related: [style_qiqingwuxia],
+     desc: 邵氏兄弟电影厂武侠片质感：摄影棚布景与浓艳色调,
+     source: 华语电影史通行定义, confidence: 高}
+  - {id: style_qiqingwuxia, term: 奇情武侠, aliases: [奇情], era: 1960s-1980s,
+     domain: [华语影像], markers: [浓艳色彩, 奇情叙事, 古装, 戏剧光影],
+     related: [style_shaw],
+     desc: 邵氏武侠的奇情变体，色彩浓艳、情节离奇,
+     source: lexicon.yaml style_domain_terms 原始词条，华语影像观察, confidence: 中}
+  - {id: style_gothic, term: 哥特, aliases: [gothic, 哥特风], era: 12世纪-至今,
+     domain: [艺术史, 亚文化], markers: [尖拱, 暗色调, 宗教意象, 维多利亚装饰],
+     related: [style_darkwave],
+     desc: 从中世纪建筑到现代亚文化一脉相承的暗色华丽体系,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_darkwave, term: 暗潮, aliases: [darkwave], era: 1980s-至今,
+     domain: [音乐, 亚文化], markers: [阴郁, 合成器音色, 冷色, 夜],
+     related: [style_gothic, style_cyberpunk],
+     desc: 后朋克分支，阴郁冷峻的视听气质,
+     source: 音乐流派通行定义, confidence: 高}
+  - {id: style_rococo, term: 洛可可, aliases: [rococo], era: 18世纪,
+     domain: [艺术史], markers: [C形曲线, 粉色系, 贝壳纹样, 纤细金饰],
+     related: [style_baroque],
+     desc: 18 世纪法国宫廷风格，轻盈纤巧的装饰曲线,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_baroque, term: 巴洛克, aliases: [baroque], era: 17世纪,
+     domain: [艺术史], markers: [强烈明暗, 动感构图, 金饰, 戏剧性],
+     related: [style_rococo, style_classical],
+     desc: 17 世纪戏剧性风格，强烈明暗对比与运动感,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_steampunk, term: 蒸汽朋克, aliases: [steampunk], era: 1980s-至今,
+     domain: [网络美学, 科幻], markers: [黄铜, 齿轮, 维多利亚服饰, 蒸汽机械],
+     related: [style_dieselpunk],
+     desc: 维多利亚时代技术与美学的平行历史,
+     source: 科幻类型学通行定义, confidence: 高}
+  - {id: style_dieselpunk, term: 柴油朋克, aliases: [dieselpunk], era: 1920s-1950s,
+     domain: [网络美学, 科幻], markers: [内燃机, 石油工业, 宣传画, 流线型],
+     related: [style_steampunk],
+     desc: 内燃机时代的平行历史美学，粗粝工业感,
+     source: 科幻类型学通行定义, confidence: 高}
+  - {id: style_solarpunk, term: 太阳朋克, aliases: [solarpunk], era: 2010s-至今,
+     domain: [网络美学, 科幻], markers: [绿植建筑, 太阳能板, 明亮, 生态社区],
+     conflicts: [style_cyberpunk], related: [],
+     desc: 乐观的生态未来主义，与赛博朋克的阴郁相对,
+     source: 科幻类型学通行定义, confidence: 高}
+  - {id: style_popart, term: 波普艺术, aliases: [pop art], era: 1950s-1960s,
+     domain: [艺术史, 设计], markers: [本戴点, 漫画格, 俗艳配色, 名人肖像],
+     related: [style_memphis],
+     desc: 以大众商业图像为素材的艺术运动，沃霍尔与利希滕斯坦为代表,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_memphis, term: 孟菲斯, aliases: [memphis design], era: 1980s,
+     domain: [设计], markers: [几何, 撞色, 波浪线, 水磨石纹],
+     related: [style_popart, style_y2k],
+     desc: 1980 年代米兰设计小组的几何撞色风格,
+     source: 设计史通行定义, confidence: 高}
+  - {id: style_constructivism, term: 构成主义, aliases: [constructivism], era: 1910s-1920s,
+     domain: [艺术史, 设计], markers: [工业感, 红黑配色, 斜切构图, 照片蒙太奇],
+     related: [style_bauhaus],
+     desc: 俄国先锋派，工业材料与政治宣传美学,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_bauhaus, term: 包豪斯, aliases: [bauhaus], era: 1919-1933,
+     domain: [设计, 建筑], markers: [功能主义, 三原色, 几何无衬线, 网格],
+     related: [style_constructivism, style_minimal],
+     desc: 现代设计教育原点，形式追随功能,
+     source: 设计史通行定义, confidence: 高}
+  - {id: style_minimal, term: 极简主义, aliases: [minimalism], era: 1960s-至今,
+     domain: [设计, 艺术], markers: [留白, 单色, 几何, 少即是多],
+     related: [style_bauhaus, style_morandi],
+     desc: 削减到本质的视觉策略,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_ukiyoe, term: 浮世绘, aliases: [ukiyo-e], era: 17-19世纪,
+     domain: [艺术史, 日本], markers: [平涂, 墨线, 构图分割, 名所绘],
+     related: [],
+     desc: 日本江户时代木版印刷，葛饰北斋《富岳三十六景》为代表,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_ink, term: 水墨, aliases: [国画, 写意], era: 古今,
+     domain: [艺术史, 华语], markers: [留白, 晕染, 皴法, 墨色阶],
+     related: [],
+     desc: 以墨色浓淡与留白构图的华语绘画传统,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_pixelart, term: 像素艺术, aliases: [pixel art], era: 1980s-至今,
+     domain: [网络美学, 游戏], markers: [索引色, 网格, 抖动, 低分辨率],
+     related: [style_y2k, style_lofi],
+     desc: 以像素网格为基本单元的数字绘画,
+     source: 游戏与数字艺术通行定义, confidence: 高}
+  - {id: style_lowpoly, term: 低多边形, aliases: [low poly], era: 2010s,
+     domain: [设计, 3D], markers: [面数少, 平直着色, 几何],
+     related: [style_y2k, style_pixelart],
+     desc: 低面数 3D 模型的棱角美感,
+     source: 3D 设计通行定义, confidence: 高}
+  - {id: style_collage, term: 拼贴, aliases: [collage], era: 20世纪-至今,
+     domain: [艺术史, 设计], markers: [剪贴, 报纸, 图层错位, 混合媒介],
+     related: [style_constructivism, style_digitalwaste],
+     desc: 异质材料的并置构成，立体主义以来的重要手法,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_documentary, term: 纪实摄影, aliases: [documentary], era: 20世纪-至今,
+     domain: [影像], markers: [决定性瞬间, 黑白, 现场光, 不干涉],
+     conflicts: [style_dreamcore, style_homemovie], related: [style_snapshot],
+     desc: 以记录为宗旨的摄影传统，布列松为代表,
+     source: 摄影史通行定义, confidence: 高}
+  - {id: style_snapshot, term: 快照美学, aliases: [snapshot], era: 1960s-至今,
+     domain: [影像], markers: [随手拍, 闪光灯, 红眼, 构图失误],
+     related: [style_documentary, style_homemovie],
+     desc: 以随手拍的失误与即时性为美学对象,
+     source: 摄影史通行定义, confidence: 高}
+  - {id: style_glitch, term: 故障艺术, aliases: [glitch art], era: 2000s-至今,
+     domain: [网络美学, 影像], markers: [数据损坏, 色块错位, 压缩伪影, 撕裂],
+     related: [style_digitalwaste, style_cyberpunk],
+     desc: 以数字故障痕迹为素材的艺术,
+     source: 数字艺术通行定义, confidence: 高}
+  - {id: style_seapunk, term: 海洋朋克, aliases: [seapunk], era: 2010s,
+     domain: [网络美学], markers: [海蓝, 海豚, 3D水体, 网格],
+     related: [style_vaporwave],
+     desc: 蒸汽波的海洋变体，海蓝与水体 3D 元素,
+     source: 2010 年代网络美学社群, confidence: 中}
+  - {id: style_classical, term: 古典油画, aliases: [文艺复兴, 古典主义], era: 14-18世纪,
+     domain: [艺术史], markers: [晕染, 明暗法, 宗教题材, 深褐底色],
+     related: [style_baroque],
+     desc: 文艺复兴至新古典主义的油画传统,
+     source: 艺术史通行定义, confidence: 高}
+
+  # ---- 时尚/穿搭风格域 ----------------------------------------------------
+  - {id: style_dopamine, term: 多巴胺穿搭, aliases: [dopamine dressing], era: 2023-至今,
+     domain: [时尚], markers: [高饱和, 撞色, 快乐, 明亮],
+     related: [style_maillard, style_popart],
+     desc: 以高饱和色彩刺激愉悦感的穿搭风格,
+     source: 2023 年时尚媒体通行命名, confidence: 高}
+  - {id: style_maillard, term: 美拉德穿搭, aliases: [maillard dressing], era: 2023-至今,
+     domain: [时尚], markers: [棕色系, 卡其, 焦糖, 秋日],
+     related: [style_dopamine, style_morandi],
+     desc: 借美拉德反应的棕褐色系穿搭,
+     source: 2023 年时尚媒体通行命名, confidence: 高}
+  - {id: style_morandi, term: 莫兰迪色系, aliases: [morandi], era: 20世纪-至今,
+     domain: [时尚, 艺术], markers: [低饱和, 灰调, 高级灰],
+     related: [style_minimal, style_maillard],
+     desc: 源自画家莫兰迪的低饱和灰色调,
+     source: 艺术史通行定义, confidence: 高}
+  - {id: style_grey, term: 格雷系, aliases: [grey style], era: 2023-至今,
+     domain: [时尚], markers: [全灰调, 层次, 极简],
+     related: [style_morandi, style_minimal],
+     desc: 全灰色调的极简穿搭体系,
+     source: 2023 年时尚媒体通行命名, confidence: 高}
+  - {id: style_newchinese, term: 新中式, aliases: [new chinese style], era: 2022-至今,
+     domain: [时尚, 华语], markers: [盘扣, 立领, 水墨纹, 现代剪裁],
+     related: [style_ink],
+     desc: 中式传统元素的现代日常化重构,
+     source: 2022 年起时尚媒体通行命名, confidence: 高}
+  - {id: style_wasteland, term: 废土风, aliases: [wasteland], era: 2010s-至今,
+     domain: [时尚, 影像], markers: [破败, 做旧, 末日, 拼补],
+     related: [style_digitalwaste, style_dieselpunk],
+     desc: 末日废土想象的穿搭与影像风格,
+     source: 亚文化与游戏通行概念, confidence: 高}
+  - {id: style_wabi, term: 侘寂, aliases: [wabi-sabi], era: 古今,
+     domain: [美学, 日本], markers: [素朴, 残缺, 氧化, 不完美],
+     related: [style_minimal],
+     desc: 接受残缺与时间痕迹的日本美学,
+     source: 美学史通行定义, confidence: 高}
+
+  # ---- 补录（链接校验器要求）--------------------------------------------
+  - {id: style_pastoral, term: 田园牧歌, aliases: [pastoral], era: 古今,
+     domain: [艺术史, 影像], markers: [牧场, 羊群, 夕阳, 理想化乡村],
+     conflicts: [style_cyberpunk, style_dieselpunk], related: [],
+     desc: 理想化的乡村牧歌意象，与工业/都市气质互斥,
+     source: 艺术史通行概念, confidence: 高}
+  - {id: style_lofi, term: 低保真美学, aliases: [lo-fi, lofi], era: 2010s-至今,
+     domain: [网络美学, 音乐], markers: [底噪, 磁带, 昏暗, 柔和],
+     related: [style_homemovie, style_pixelart, style_vaporwave],
+     desc: 以底噪、磁带与昏暗柔光为特征的舒适质感,
+     source: lo-fi 音乐与美学文化，公开资料通行, confidence: 高}

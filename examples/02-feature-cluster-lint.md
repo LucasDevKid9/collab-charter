@@ -94,7 +94,7 @@ Agent 环境下直接调 MCP 工具 `fcslint_analyze`，一次调用拿回整份
 `FCS001` 表示有词条不在词典里，需要**人工判定**。这不是工具的缺陷，而是规范 6.6 的要求：
 "筛选结论必须给出每个词条的保留理由或淘汰理由，不得静默过滤。"
 
-判定后把它补进 `tools/fcslint/lexicon.yaml`：
+判定后把它补进 `knowledge/lexicon.yaml`：
 
 ```yaml
 - {term: 你的新词条, cluster: 色彩系统, kind: entity, mapping: high}

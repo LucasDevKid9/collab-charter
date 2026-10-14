@@ -1,12 +1,12 @@
 # 条款追溯矩阵
 
-**目的**：宪章有 73 条可执行条款。本表回答一个问题——**每一条，到底由什么在执行？**
+**目的**：宪章有 90 条可执行条款。本表回答一个问题——**每一条，到底由什么在执行？**
 
 答案是三类，且**不回避第三类**：
 
 | 类别 | 含义 | 数量 | 验证方式 |
 |---|---|---|---|
-| **代码执行** | 有可断言的实现，违规能被机械检出 | 37 | `tests/test_traceability.py` 机械验证 |
+| **代码执行** | 有可断言的实现，违规能被机械检出 | 54 | `tests/test_traceability.py` 机械验证 |
 | **技能承载** | 行为约定，由技能文档约束模型行为，无法机械断言 | 36 | 技能正文 + 人工核验 |
 | **待实现** | 已知缺口，已登记理由与边界 | 0 | 见 [ANALYSIS.md](ANALYSIS.md) 第五节 |
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 一、代码执行的条款（37 条）
+## 一、代码执行的条款（54 条）
 
 `tests/test_traceability.py` 会逐条验证：条款真实存在 → 模块真实存在 → 有指名测试。
 
@@ -82,6 +82,31 @@
 | 5.4 | 控制力量化四维打分 | `ControlScore` | `test_评分四项都有明细` |
 | 5.2 | 簇结构保留优化 | `report.suggest()` | `test_优化稿不移除核心意图词条` |
 
+### 第十一 / 十二章（v3.2 新增）
+
+知识库四件套在 `src/collab_charter/lexicon/`，求解器在 `src/collab_charter/anchor/`。
+深度说明：[SEMANTIC-FIELD.md](SEMANTIC-FIELD.md)。
+
+| 条款 | 内容摘要 | 执行模块 | 指名测试 |
+|---|---|---|---|
+| `11.1-K1` | 知识只存 `knowledge/*.yaml`，零代码扩容 | `lexicon/kb.py` | `test_零代码扩容` |
+| `11.1-K2` | 来源 + 置信度；不可溯源进名单 | `lexicon/kb.py` | `test_不可溯源条目进入名单` |
+| `11.1-K3` | 调用随结果输出 digest | `lexicon/kb.py` | `test_digest_稳定且随内容变化` |
+| `11.2-V1` | 同输入同向量同排序，无随机性 | `lexicon/vectors.py` | `test_空间指纹随上下文变化` |
+| `11.2-V2` | 得分可分解为分布权重 | `lexicon/mine.py` | `test_分布权重归一` |
+| `11.2-V3` | 空间任务期临时建构、用后即弃 | `lexicon/vectors.py` | `test_空间任务期临时建构用后即弃` |
+| `11.3-F1` | 网络确定性推出，无随机初始化 | `lexicon/field.py` | `test_关联网络与社群` |
+| `11.3-F2` | 覆盖缺口必须输出 | `lexicon/field.py` | `test_覆盖缺口可操作` |
+| `11.3-F3` | 语义场结论是知识流非事实流 | `lexicon/kb.py` | `test_检索工具返回可溯源字段` |
+| `11.4-M1` | 非公开条目附闸门结论 | `lexicon/mine.py` | `test_高危条目闸门_block` |
+| `11.4-M2` | 在线扩容只报不执行 | `lexicon/mine.py` | `test_在线扩容只报不执行` |
+| `11.4-M3` | 语义状态显式影响权重 | `lexicon/mine.py` | `test_语义状态策略表齐全` |
+| `12.1-A1` | 结论来自求解器枚举 | `anchor/solver.py` | `test_第一轮推荐观望` |
+| `12.1-A2` | AST 白名单，逃逸一律拒绝 | `anchor/solver.py` | `test_逃逸构造一律被拒` |
+| `12.1-A3` | 警告原样转告 | `anchor/solver.py` | `test_无解轮给出建议` |
+| `12.1-A4` | 漂移必须提示「标准未稳」 | `anchor/solver.py` | `test_solve_检测漂移并提示标准未稳` |
+| `12.1-A5` | 未覆盖解数必须报告 | `anchor/solver.py` | `test_档位未覆盖的解被计数` |
+
 ---
 
 ## 二、技能承载的条款（36 条）
@@ -133,7 +158,10 @@ python3 -m pytest -q
 2. `charter/CHARTER.md` —— 人读版同步
 3. `tests/test_traceability.py` —— 若是代码执行条款，加入 `CLAUSE_IMPLEMENTATION` 与 `TEST_COVERAGE`
 
-若新增的是规则引擎条款，还要在 `tools/fcslint/lexicon.yaml` 或 `rules.py` 落地，
+若新增的是规则引擎条款，还要在 `knowledge/lexicon.yaml` 或 `rules.py` 落地，
 并加入 `SPEC_IMPLEMENTATION`。
+
+若新增的是知识库/语义场条款，执行模块写在 `src/collab_charter/lexicon/`（点号路径
+`lexicon.kb` 等）；符号锚定条款写在 `src/collab_charter/anchor/`。
 
 这套约束让"规范漂移"从**不可避免**变成**第一次提交就报错**。

@@ -43,11 +43,19 @@ from collab_charter.flows import (  # noqa: E402
     TTL,
 )
 from collab_charter.router import TaskLevel  # noqa: E402
+from collab_charter.anchor import solve as anchor_solve  # noqa: E402
+from collab_charter.anchor import AnchorError, AnchorUnavailableError  # noqa: E402
+from collab_charter.lexicon import (  # noqa: E402
+    KnowledgeBase,
+    MiningRequest,
+    lexicon_search,
+    mine,
+)
 from fcslint import analyze as fcslint_analyze  # noqa: E402
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "collab-charter"
-SERVER_VERSION = "3.1.0"
+SERVER_VERSION = "3.2.0"
 
 
 # ---------------------------------------------------------------------------
@@ -226,6 +234,97 @@ class ToolRegistry:
         flows = s.memory.recall(query, limit=limit)
         return {"count": len(flows), "items": [{"text": f.text, "meta": f.meta()} for f in flows]}
 
+    # -- 工具 11：符号锚定求解 ---------------------------------------------
+    def anchor_solve(
+        self,
+        declare: str,
+        constraints: str,
+        decisions: str,
+        rounds: str = "",
+        max_solutions: int = 100,
+    ) -> dict[str, Any]:
+        """把多条件权衡变成 0/1 符号问题交给 z3 硬算（宪章 12.1）。
+
+        结论一律来自求解器枚举输出（12.1-A1）；警告原样返回（12.1-A3）；
+        多轮漂移时 drift=True 必须转告用户（12.1-A4）。
+        """
+        return anchor_solve(
+            declare=declare,
+            constraints=constraints,
+            decisions=decisions,
+            rounds=rounds,
+            max_solutions=max_solutions,
+        )
+
+    # -- 工具 12：知识库检索 ------------------------------------------------
+    def lexicon_search(
+        self,
+        query: str,
+        kinds: list[str] | None = None,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """检索知识库（字典/语料/词条/风格/亚文化，宪章 11.1）。"""
+        items = lexicon_search(query, kinds=kinds, limit=limit)
+        return {
+            "kb_digest": KnowledgeBase.load().digest(),
+            "count": len(items),
+            "items": items,
+        }
+
+    # -- 工具 13：语义场深挖 ------------------------------------------------
+    def lexicon_mine(
+        self,
+        requirement: str,
+        task_objectives: list[str] | None = None,
+        semantic_state: str = "",
+        domains: list[str] | None = None,
+        limit: int = 12,
+        allow_online: bool = False,
+    ) -> dict[str, Any]:
+        """按需求 + 目标 + 语义状态深挖知识库，返回加权词条、分布权重、
+        特征级归因、闸门结论与语义场分析（宪章 11.2-V2 / 11.4）。"""
+        result = mine(
+            MiningRequest(
+                requirement=requirement,
+                task_objectives=task_objectives or [],
+                semantic_state=semantic_state,
+                domains=domains or [],
+                limit=limit,
+                allow_online=allow_online,
+            ),
+            charter=self._charter(),
+        )
+        return result.to_dict()
+
+    # -- 工具 14：潜空间语义场 ----------------------------------------------
+    def semantic_field(
+        self,
+        requirement: str,
+        task_objectives: list[str] | None = None,
+        semantic_state: str = "",
+        domains: list[str] | None = None,
+        limit: int = 30,
+    ) -> dict[str, Any]:
+        """对一次挖掘的候选集建构潜空间语义场：关联网络、中心性、社群、
+        覆盖缺口与密度/模块度（宪章 11.3）。"""
+        result = mine(
+            MiningRequest(
+                requirement=requirement,
+                task_objectives=task_objectives or [],
+                semantic_state=semantic_state,
+                domains=domains or [],
+                limit=limit,
+            ),
+            charter=self._charter(),
+        )
+        return {
+            "kb_digest": result.kb_digest,
+            "space_digest": result.space_digest,
+            "semantic_state": result.semantic_state,
+            "field": result.field.to_dict(),
+            "warnings": result.warnings,
+        }
+
 
 # ---------------------------------------------------------------------------
 # JSON-RPC / MCP 传输层
@@ -358,6 +457,65 @@ def _tool_schemas() -> list[dict[str, Any]]:
                     "limit": {"type": "integer", "description": "返回条数，默认 5"},
                 },
                 "required": ["query"],
+            },
+        },
+        {
+            "name": "anchor_solve",
+            "description": "认知锚定·符号求解（宪章 12.1）：把多条件权衡变成 0/1 符号问题交给 z3 全枚举硬算，输出档位投票、变量频率、分支表与多轮漂移检测。当用户给出多个条件要权衡、且结论不能靠感觉时使用。需要可选依赖 z3-solver。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "declare": {**S, "description": "变量声明，逗号分隔，格式 变量:含义，如 x:可行性,y:预算充足"},
+                    "constraints": {**S, "description": "硬约束，分号分隔的 z3 表达式，如 x+y>=2; Implies(y==0,w==1)"},
+                    "decisions": {**S, "description": "候选档位，分号分隔，格式 档名:谓词，如 做:x+y>=3; 观望:x+y==2; 不做:x+y<2"},
+                    "rounds": {**S, "description": "多轮对齐，| 分隔，段数=轮数；第 1 段通常留空"},
+                    "max_solutions": {"type": "integer", "description": "枚举上限，默认 100"},
+                },
+                "required": ["declare", "constraints", "decisions"],
+            },
+        },
+        {
+            "name": "lexicon_search",
+            "description": "检索宪章知识库（字典/语料/词条/风格/互联网亚文化，第十一章）。当需要确认某个词是否有依据、属于什么簇/类型/风格域时使用。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {**S, "description": "检索词"},
+                    "kinds": {"type": "array", "items": S, "description": "限定词条类型，如 entity/abstract/style/meme/slang/register/community/practice"},
+                    "limit": {"type": "integer", "description": "返回条数，默认 20"},
+                },
+                "required": ["query"],
+            },
+        },
+        {
+            "name": "lexicon_mine",
+            "description": "按需求 + 任务目标 + 语义状态深挖知识库（宪章 11.4）：返回加权词条、分布权重、特征级归因、安全闸门结论与特征簇标记建议。语义状态决定探索/收敛/创意/校验策略。当需要为一次生成任务系统性地找依据词条时使用。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "requirement": {**S, "description": "需求原文"},
+                    "task_objectives": {"type": "array", "items": S, "description": "任务目标"},
+                    "semantic_state": {**S, "description": "语义状态：探索期/收敛期/创意期/校验期，留空为中性"},
+                    "domains": {"type": "array", "items": S, "description": "限定域，如 复古/亚文化/风格"},
+                    "limit": {"type": "integer", "description": "返回词条数，默认 12"},
+                    "allow_online": {"type": "boolean", "description": "是否允许在线扩容（默认否；为真时只报闸门结论不执行，10-R4）"},
+                },
+                "required": ["requirement"],
+            },
+        },
+        {
+            "name": "semantic_field",
+            "description": "对一次深挖的候选集建构潜空间语义场（宪章 11.3）：关联网络、特征向量中心性、标签传播社群、覆盖缺口与密度/模块度。当需要判断哪些词条互为语境、谁是中枢、哪些需求维度还缺覆盖时使用。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "requirement": {**S, "description": "需求原文"},
+                    "task_objectives": {"type": "array", "items": S, "description": "任务目标"},
+                    "semantic_state": {**S, "description": "语义状态：探索期/收敛期/创意期/校验期"},
+                    "domains": {"type": "array", "items": S, "description": "限定域"},
+                    "limit": {"type": "integer", "description": "候选集大小，默认 30"},
+                },
+                "required": ["requirement"],
             },
         },
     ]

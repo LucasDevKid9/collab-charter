@@ -1,0 +1,793 @@
+# ============================================================================
+# 互联网亚文化语料库（单一事实源 · 宪章 11.1-K1）
+# ----------------------------------------------------------------------------
+# 供特征簇标记语法扩容与语义场深挖使用。五类条目：
+#   meme      网络迷因（梗）：有明确出处的病毒式内容
+#   slang     流行语/黑话：词汇层面的网络用法
+#   register  语体/语料体裁：成篇的语言风格（可直接进「语料」维度）
+#   community 圈层文化：社区与圈子本身
+#   practice  圈层实践：圈内的行为模式
+#
+# 安全元数据示例：涉及隐私侵害的条目（开盒/人肉搜索）标 高危/禁外发，
+# 深挖引擎遇到它们必须给出第十章闸门裁决（宪章 11.4-M1）——知识库收录
+# 该词是为了「识别」，不是为了「外发」。
+#
+# 字段说明：
+#   gloss      : 释义（条目定义性内容，引用时以来源为准，见 11.3-F3）
+#   register   : 色彩（褒义/贬义/中性/调侃）
+#   era        : 通行年代
+#   platforms  : 主要通行平台
+#   fcs_hint   : 进入特征簇提示词时的映射建议
+#   source     : 来源（11.1-K2）
+#   confidence: 高 / 中 / 低（11.1-K2）
+# ============================================================================
+
+version: 1
+
+meta:
+  updated: "2026-10"
+  source: 公开网络语料观察整理；释义为社群通行用法
+  note: >
+    亚文化词条进入提示词时按 fcs_hint 归入对应簇；抽象气质类默认归
+    光影氛围簇·抽象类（权重 ≤0.8）。语义场引擎对「语体」类条目的处理
+    见 docs/SEMANTIC-FIELD.md。
+
+kinds:
+  meme:      {zh: 网络迷因,   fcs_cluster: light,   fcs_kind: abstract}
+  slang:     {zh: 流行语,     fcs_cluster: light,   fcs_kind: abstract}
+  register:  {zh: 语体语料,   fcs_cluster: light,   fcs_kind: abstract}
+  community: {zh: 圈层文化,   fcs_cluster: subject, fcs_kind: abstract}
+  practice:  {zh: 圈层实践,   fcs_cluster: medium,  fcs_kind: abstract}
+
+entries:
+  # ---- 流行语 / 黑话 -----------------------------------------------------
+  - {id: sub_yyds, term: YYDS, kind: slang, aliases: [永远的神, yyds], register: 褒义, era: 2021-至今,
+     domain: [通用, 电竞], platforms: [微博, 抖音, B站],
+     gloss: 「永远的神」拼音首字母缩写，表示对人或事物的极高称赞,
+     related: [sub_juejuezi, sub_zundunjiadun],
+     source: 电竞圈直播用语（2021，「乌兹，永远的神」）后泛化为全网流行语, confidence: 高}
+  - {id: sub_juejuezi, term: 绝绝子, kind: slang, register: 调侃, era: 2021-至今,
+     domain: [通用], platforms: [抖音, 小红书],
+     gloss: 「绝了」的夸张变体，可表极好也可表极差（反语），语义随语境两极,
+     related: [sub_yyds, sub_wuyuzi],
+     source: 2021 年短视频平台流行语, confidence: 高}
+  - {id: sub_zundunjiadun, term: 尊嘟假嘟, kind: slang, register: 调侃, era: 2022-至今,
+     domain: [通用], platforms: [抖音, 微博],
+     gloss: 「真的假的」的撒娇谐音，用于假装天真的反问,
+     related: [sub_shuanq],
+     source: 2022 年网络撒娇腔流行语, confidence: 高}
+  - {id: sub_shuanq, term: 栓Q, kind: slang, register: 调侃, era: 2021-至今,
+     domain: [通用], platforms: [抖音, B站],
+     gloss: 「thank you」的中式谐音，多用于无奈语境下的假客气,
+     related: [sub_duosun],
+     source: 2021 年起网民对方言口音英语的谐音模仿, confidence: 高}
+  - {id: sub_duosun, term: 夺笋, kind: slang, register: 调侃, era: 2020-至今,
+     domain: [通用], platforms: [微博, B站],
+     gloss: 「多损」的谐音，调侃他人损招,
+     related: [],
+     source: 2020 年网络谐音流行语, confidence: 高}
+  - {id: sub_bengbuzhule, term: 蚌埠住了, kind: slang, register: 调侃, era: 2021-至今,
+     domain: [通用], platforms: [B站, 微博],
+     gloss: 「绷不住了」的谐音（借安徽地名蚌埠），情绪即将失控,
+     related: [sub_popofang],
+     source: 2021 年网络谐音流行语, confidence: 高}
+  - {id: sub_popofang, term: 破防, kind: slang, register: 中性, era: 2020-至今,
+     domain: [通用, 游戏], platforms: [全网],
+     gloss: 心理防线被击破；游戏术语「破除防御」的泛化,
+     related: [sub_emo],
+     source: 游戏术语泛化，2020 年起全网通行, confidence: 高}
+  - {id: sub_emo, term: emo, kind: slang, register: 中性, era: 2021-至今,
+     domain: [通用], platforms: [网易云音乐, 微博],
+     gloss: 情绪化、突然的低落感；源于情绪摇滚流派的网络泛化,
+     related: [sub_yinanping],
+     source: 音乐流派名词的网络语义泛化, confidence: 高}
+  - {id: sub_neijuan, term: 内卷, kind: slang, aliases: [卷], register: 中性, era: 2020-至今,
+     domain: [通用, 职场], platforms: [全网],
+     gloss: 无实质增长的恶性内部竞争；人类学术语入网,
+     related: [sub_tangping, sub_bailan, sub_juanwang],
+     source: 学术语汇 2020 年入网，公共媒体广泛报道, confidence: 高}
+  - {id: sub_tangping, term: 躺平, kind: slang, register: 中性, era: 2021-至今,
+     domain: [通用, 职场], platforms: [全网],
+     gloss: 主动降低欲望与投入，以低能耗方式应对竞争,
+     related: [sub_neijuan, sub_bailan, sub_foxi],
+     source: 2021 年全网流行语，公共媒体广泛报道, confidence: 高}
+  - {id: sub_bailan, term: 摆烂, kind: slang, register: 调侃, era: 2022-至今,
+     domain: [通用, 职场], platforms: [全网],
+     gloss: 任由事态恶化而不补救，比躺平更消极一档,
+     related: [sub_tangping, sub_fafang],
+     source: 2022 年全网流行语, confidence: 高}
+  - {id: sub_xianyanbao, term: 显眼包, kind: slang, register: 调侃, era: 2022-至今,
+     domain: [通用], platforms: [抖音, 微博],
+     gloss: 爱出风头、引人注目的人，现多为亲昵调侃,
+     related: [sub_shesi, sub_shehuiniubing],
+     source: 2022 年起通行，公共媒体广泛使用, confidence: 高}
+  - {id: sub_shehuiniubing, term: 社交牛逼症, kind: slang, register: 调侃, era: 2021-至今,
+     domain: [通用], platforms: [B站, 抖音],
+     gloss: 在社交场合毫无顾忌、自带气场的人（病症式调侃）,
+     related: [sub_shekong, sub_xianyanbao],
+     source: 2021 年短视频平台流行语, confidence: 高}
+  - {id: sub_shekong, term: 社恐, kind: slang, register: 中性, era: 2018-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 社交恐惧；网络语境泛指畏惧/回避社交的人,
+     related: [sub_shehuiniubing, sub_shesi],
+     source: 心理学术语的网络泛化, confidence: 高}
+  - {id: sub_shesi, term: 社死, kind: slang, register: 调侃, era: 2010s-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 社会性死亡，指在公共场合极度丢脸的时刻,
+     related: [sub_shekong],
+     source: 「社会性死亡」的缩略，2010 年代起通行, confidence: 高}
+  - {id: sub_foersi, term: 凡尔赛, kind: slang, aliases: [凡尔赛文学, 凡学], register: 调侃, era: 2020-至今,
+     domain: [通用], platforms: [微博, 豆瓣],
+     gloss: 明贬暗褒、欲扬先抑式炫耀；得名于漫画《凡尔赛玫瑰》,
+     related: [sub_xianyanbao],
+     source: 2020 年微博流行语，出处典故明确, confidence: 高}
+  - {id: sub_huabing, term: 画饼, kind: slang, register: 贬义, era: 2020-至今,
+     domain: [职场], platforms: [全网],
+     gloss: 空许利益而不兑现的管理话术,
+     related: [sub_pua],
+     source: 职场语汇网络化, confidence: 高}
+  - {id: sub_pua, term: PUA, kind: slang, register: 贬义, era: 2020-至今,
+     domain: [通用, 职场, 情感], platforms: [全网],
+     gloss: 以打压建立控制的关系操控；源自搭讪技巧术语的负面化,
+     related: [sub_huabing],
+     source: 2020 年公共议题化，媒体广泛讨论, confidence: 高}
+  - {id: sub_dagongren, term: 打工人, kind: slang, register: 自嘲, era: 2020-至今,
+     domain: [职场], platforms: [全网],
+     gloss: 劳动者的自嘲式自称,
+     related: [sub_niuma, sub_weikuiren],
+     source: 2020 年全网流行语, confidence: 高}
+  - {id: sub_weikuiren, term: 尾款人, kind: slang, register: 自嘲, era: 2020-至今,
+     domain: [消费], platforms: [淘宝, 微博],
+     gloss: 大促中支付尾款的消费者自嘲,
+     related: [sub_dagongren],
+     source: 2020 年双十一起通行, confidence: 高}
+  - {id: sub_xiaozhen, term: 小镇做题家, kind: slang, register: 自嘲, era: 2020-至今,
+     domain: [教育, 社会], platforms: [豆瓣, 知乎],
+     gloss: 出身小城、依靠应试脱颖而出的学子自嘲；亦为争议性社会标签,
+     related: [sub_neijuan],
+     source: 2020 年豆瓣小组语汇入公共讨论, confidence: 高}
+  - {id: sub_jingshen, term: 精神小伙, kind: slang, register: 调侃, era: 2010s-至今,
+     domain: [通用], platforms: [抖音, 快手],
+     gloss: 着装言行夸张张扬的年轻男性（带调侃意味）,
+     related: [sub_xianyanbao],
+     source: 2010 年代短视频平台流行语, confidence: 高}
+  - {id: sub_xiatou, term: 下头, kind: slang, register: 贬义, era: 2021-至今,
+     domain: [通用], platforms: [微博, 小红书],
+     gloss: 兴致被败坏、好感瞬间消退,
+     related: [sub_shangtou],
+     source: 2021 年起粉圈与全网通行, confidence: 高}
+  - {id: sub_shangtou, term: 上头, kind: slang, register: 中性, era: 2020-至今,
+     domain: [通用, 游戏], platforms: [全网],
+     gloss: 情绪高涨、失去冷静地投入,
+     related: [sub_xiatou, sub_kedaole],
+     source: 网络通行语, confidence: 高}
+  - {id: sub_nazhi, term: 拿捏, kind: slang, register: 中性, era: 2021-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 精准掌控局面或人心,
+     related: [sub_pua, sub_huabing],
+     source: 2021 年起全网通行, confidence: 高}
+  - {id: sub_foxi, term: 佛系, kind: slang, register: 中性, era: 2017-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 不争不抢、无所谓成败的处世姿态,
+     related: [sub_tangping, sub_suiyuan],
+     source: 2017 年自日本「佛系男子」报道入华, confidence: 高}
+  - {id: sub_suiyuan, term: 随缘, kind: slang, register: 中性, era: 古今,
+     domain: [通用], platforms: [全网],
+     gloss: 顺势而为、不强求；佛教语汇的网络化,
+     related: [sub_foxi],
+     source: 网络通行语, confidence: 高}
+  - {id: sub_zhongcao, term: 种草, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [消费], platforms: [小红书, 淘宝],
+     gloss: 推荐激发他人的购买或尝试欲望,
+     related: [sub_anli, sub_balei, sub_bachao],
+     source: 2010 年代美妆消费圈兴起后全网通行, confidence: 高}
+  - {id: sub_bachao, term: 拔草, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [消费], platforms: [小红书],
+     gloss: 买下被种草的物品，或反过来打消购买欲,
+     related: [sub_zhongcao],
+     source: 与「种草」对举的消费圈语汇, confidence: 高}
+  - {id: sub_anli, term: 安利, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 带着热情向他人强烈推荐,
+     related: [sub_zhongcao],
+     source: 「安利」品牌名的动词化，2010 年代起通行, confidence: 高}
+  - {id: sub_balei, term: 避雷, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [消费], platforms: [小红书, 淘宝],
+     gloss: 指出风险，帮他人避开坑,
+     related: [sub_zhongcao, sub_cailei],
+     source: 消费圈通行语汇, confidence: 高}
+  - {id: sub_cailei, term: 踩雷, kind: slang, register: 贬义, era: 2010s-至今,
+     domain: [消费], platforms: [小红书],
+     gloss: 买到/遇到令人失望的东西,
+     related: [sub_balei],
+     source: 与「避雷」对举的消费圈语汇, confidence: 高}
+  - {id: sub_chigua, term: 吃瓜, kind: slang, aliases: [吃瓜群众], register: 中性, era: 2016-至今,
+     domain: [通用], platforms: [微博, 豆瓣],
+     gloss: 围观热点事件与八卦,
+     related: [sub_tanfang],
+     source: 「吃瓜群众」2016 年起全网通行, confidence: 高}
+  - {id: sub_tanfang, term: 塌房, kind: slang, register: 贬义, era: 2020-至今,
+     domain: [粉圈], platforms: [微博, 豆瓣],
+     gloss: 偶像人设或事业崩塌,
+     related: [sub_chigua, sub_tuofen],
+     source: 2020 年起粉圈与全网通行, confidence: 高}
+  - {id: sub_tuofen, term: 脱粉, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 退出粉丝身份,
+     related: [sub_huicai, sub_tanfang],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_huicai, term: 回踩, kind: slang, register: 贬义, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 脱粉后反过来攻击原偶像,
+     related: [sub_tuofen],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_qiangtou, term: 墙头, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博, 豆瓣],
+     gloss: 短暂喜欢、随时可换的对象,
+     related: [sub_benming, sub_paqiang],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_benming, term: 本命, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博, B站],
+     gloss: 最喜爱的对象（区别于墙头）,
+     related: [sub_qiangtou],
+     source: 日语「本命」入华，粉圈通行, confidence: 高}
+  - {id: sub_keCP, term: 嗑CP, kind: slang, aliases: [嗑cp, 磕CP], register: 中性, era: 2010s-至今,
+     domain: [同人圈, 粉圈], platforms: [LOFTER, 微博, B站],
+     gloss: 喜爱并消费两人（或角色）的配对关系,
+     related: [sub_haoke, sub_kedaole, sub_gongyetangjing],
+     source: 「嗑」药之嗑的引申，同人圈通行, confidence: 高}
+  - {id: sub_haoke, term: 好嗑, kind: slang, register: 褒义, era: 2021-至今,
+     domain: [同人圈, 粉圈], platforms: [微博, LOFTER],
+     gloss: 配对关系令人陶醉,
+     related: [sub_keCP, sub_gongyetangjing],
+     source: 由「嗑CP」派生，2021 年起通行, confidence: 高}
+  - {id: sub_kedaole, term: 磕到了, kind: slang, register: 褒义, era: 2021-至今,
+     domain: [同人圈], platforms: [微博],
+     gloss: 「嗑到了糖」，被互动细节甜到,
+     related: [sub_keCP],
+     source: 同人圈通行语汇, confidence: 高}
+  - {id: sub_gongyetangjing, term: 工业糖精, kind: slang, register: 贬义, era: 2021-至今,
+     domain: [影视, 同人圈], platforms: [豆瓣, 微博],
+     gloss: 刻意、廉价的甜，缺乏真诚的互动设计,
+     related: [sub_keCP],
+     source: 影视评论语汇, confidence: 高}
+  - {id: sub_yinanping, term: 意难平, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [影视, 文学], platforms: [微博, 豆瓣],
+     gloss: 结局遗憾、放不下的情绪,
+     related: [sub_emo],
+     source: 2010 年代影视讨论区通行, confidence: 高}
+  - {id: sub_leimu, term: 泪目, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [通用], platforms: [B站, 微博],
+     gloss: 感动到眼眶湿润（弹幕高频）,
+     related: [],
+     source: 2010 年代弹幕文化通行, confidence: 高}
+  - {id: sub_wuyuzi, term: 无语子, kind: slang, register: 调侃, era: 2020-至今,
+     domain: [通用], platforms: [微博],
+     gloss: 无话可说的撒娇式表达,
+     related: [sub_juejuezi],
+     source: 2020 年起微博通行, confidence: 高}
+  - {id: sub_niuma, term: 牛马, kind: slang, register: 自嘲, era: 2020s-至今,
+     domain: [职场], platforms: [全网],
+     gloss: 以牲畜自喻的劳作者自称,
+     related: [sub_dagongren],
+     source: 2020 年代职场自嘲语汇, confidence: 高}
+  - {id: sub_malou, term: 吗喽, kind: slang, register: 自嘲, era: 2023-至今,
+     domain: [通用], platforms: [抖音, B站],
+     gloss: 两广口音「猴子」谐音，打工人自喻（吗喽的命也是命）,
+     related: [sub_niuma, sub_kapibala],
+     source: 2023 年起全网通行, confidence: 高}
+  - {id: sub_kapibala, term: 卡皮巴拉, kind: slang, aliases: [水豚], register: 褒义, era: 2023-至今,
+     domain: [通用], platforms: [抖音, 小红书],
+     gloss: 水豚（capybara）音译，情绪稳定的象征物,
+     related: [sub_malou, sub_jingshenzhuangkuang],
+     source: 2023 年动物梗，通行于短视频平台, confidence: 高}
+  - {id: sub_caotai, term: 草台班子, kind: slang, register: 调侃, era: 2023-至今,
+     domain: [通用, 职场], platforms: [全网],
+     gloss: 凑合搭起的松散班子；「世界是个草台班子」的广泛传播,
+     related: [sub_banwei],
+     source: 2023-2024 年全网流行语, confidence: 高}
+  - {id: sub_banwei, term: 班味, kind: slang, register: 自嘲, era: 2024-至今,
+     domain: [职场], platforms: [小红书, 微博],
+     gloss: 上班后沾染的疲惫气质,
+     related: [sub_dagongren, sub_caotai],
+     source: 2024 年起通行, confidence: 高}
+  - {id: sub_jingshenzhuangkuang, term: 精神状态, kind: slang, register: 调侃, era: 2023-至今,
+     domain: [通用], platforms: [小红书, B站],
+     gloss: 「我的精神状态」领先/美丽——以夸张自嘲展示心理状态,
+     related: [sub_kapibala, sub_fafangwenxue],
+     source: 2023 年起小红书通行句式, confidence: 中}
+  - {id: sub_fafang, term: 发疯, kind: slang, register: 调侃, era: 2022-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 以夸张崩溃方式宣泄情绪,
+     related: [sub_fafangwenxue, sub_chuangfei],
+     source: 2022 年起通行, confidence: 高}
+  - {id: sub_chuangfei, term: 创飞, kind: slang, register: 调侃, era: 2022-至今,
+     domain: [通用], platforms: [微博],
+     gloss: 「创死」的谐音，夸张表达被某事冲击,
+     related: [sub_fafang],
+     source: 2022 年起通行, confidence: 高}
+  - {id: sub_tezhongbing, term: 特种兵旅游, kind: slang, register: 中性, era: 2023-至今,
+     domain: [旅游], platforms: [抖音, 小红书],
+     gloss: 极限压缩时间的高强度打卡式旅游,
+     related: [sub_citywalk],
+     source: 2023 年大学生群体兴起, confidence: 高}
+  - {id: sub_citywalk, term: citywalk, kind: slang, register: 中性, era: 2023-至今,
+     domain: [旅游, 城市], platforms: [小红书],
+     gloss: 无目的的城市漫步；与特种兵旅游相对,
+     related: [sub_tezhongbing],
+     source: 2023 年海外概念入华, confidence: 高}
+  - {id: sub_zaoCA, term: 早C晚A, kind: slang, register: 中性, era: 2020s-至今,
+     domain: [消费, 职场], platforms: [小红书],
+     gloss: 早上 Coffee 晚上 Alcohol 的作息自白,
+     related: [sub_zaoba],
+     source: 2020 年代小红书通行句式, confidence: 中}
+  - {id: sub_zaoba, term: 早八, kind: slang, register: 自嘲, era: 2023-至今,
+     domain: [校园], platforms: [B站, 小红书],
+     gloss: 早上八点的课，学生与打工人的共同痛点,
+     related: [sub_dagongren],
+     source: 2023 年起通行, confidence: 中}
+  - {id: sub_hulianwangzuiti, term: 互联网嘴替, kind: slang, register: 褒义, era: 2022-至今,
+     domain: [通用], platforms: [微博, B站],
+     gloss: 精准说出自己心声的网友,
+     related: [sub_xianyanbao],
+     source: 2022 年起通行, confidence: 高}
+  - {id: sub_dianzijizha, term: 电子榨菜, kind: slang, register: 中性, era: 2021-至今,
+     domain: [消费, 影视], platforms: [豆瓣, B站],
+     gloss: 下饭的轻松视频内容,
+     related: [],
+     source: 2021 年起通行, confidence: 高}
+  - {id: sub_yijiansanlian, term: 一键三连, kind: practice, register: 中性, era: 2020-至今,
+     domain: [B站], platforms: [B站],
+     gloss: 同时完成点赞、投币、收藏的互动操作,
+     related: [sub_xiaciyiding, sub_toubi],
+     source: B站 2020 年功能推广语固化, confidence: 高}
+  - {id: sub_xiaciyiding, term: 下次一定, kind: slang, register: 调侃, era: 2010s-至今,
+     domain: [B站], platforms: [B站],
+     gloss: 弹幕里白嫖的委婉说法,
+     related: [sub_yijiansanlian, sub_baipiao],
+     source: B站弹幕文化通行, confidence: 高}
+  - {id: sub_baipiao, term: 白嫖, kind: slang, register: 调侃, era: 2010s-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 不付出代价获取他人成果,
+     related: [sub_xiaciyiding],
+     source: 2010 年代起全网通行, confidence: 高}
+  - {id: sub_toubi, term: 投币, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [B站], platforms: [B站],
+     gloss: B站支持创作者的货币化互动,
+     related: [sub_yijiansanlian],
+     source: B站机制通行语, confidence: 高}
+  - {id: sub_qianfang, term: 前方高能, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [弹幕文化], platforms: [B站, 抖音],
+     gloss: 预警即将出现精彩或刺激内容,
+     related: [sub_danmuhuti],
+     source: 弹幕文化通行预警语, confidence: 高}
+  - {id: sub_danmuhuti, term: 弹幕护体, kind: practice, register: 调侃, era: 2010s-至今,
+     domain: [弹幕文化], platforms: [B站],
+     gloss: 借弹幕壮胆以应对恐怖刺激内容,
+     related: [sub_qianfang],
+     source: 弹幕文化通行语, confidence: 高}
+  - {id: sub_yeqinghui, term: 爷青回, kind: slang, aliases: [爷的青春回来了], register: 感慨, era: 2020-至今,
+     domain: [B站, 通用], platforms: [B站, 微博],
+     gloss: 「爷的青春回来了」缩略，看到怀旧内容时的感叹,
+     related: [sub_DNA],
+     source: 2020 年 B站弹幕固化, confidence: 高}
+  - {id: sub_DNA, term: DNA动了, kind: slang, register: 感慨, era: 2020-至今,
+     domain: [通用], platforms: [B站, 抖音],
+     gloss: 被唤醒深埋的熟悉记忆,
+     related: [sub_yeqinghui, sub_shuangchu],
+     source: 2020 年起全网通行, confidence: 高}
+  - {id: sub_shuangchu, term: 双厨狂喜, kind: slang, register: 褒义, era: 2020-至今,
+     domain: [B站, 粉圈], platforms: [B站],
+     gloss: 两个圈子的爱好者看到联动时的狂喜,
+     related: [sub_DNA],
+     source: 2020 年起 B站通行, confidence: 高}
+
+  # ---- 网络迷因 -----------------------------------------------------------
+  - {id: sub_jinitaim, term: 鸡你太美, kind: meme, register: 调侃, era: 2019-至今,
+     domain: [B站, 鬼畜], platforms: [B站, 抖音],
+     gloss: 蔡徐坤《偶像练习生》自我介绍视频衍生的鬼畜梗（篮球+歌曲）,
+     related: [sub_huaqiang, sub_xiaoheizi],
+     source: 2019 年综艺片段二创，B站鬼畜区标志性素材, confidence: 高}
+  - {id: sub_huaqiang, term: 华强买瓜, kind: meme, register: 调侃, era: 2021-至今,
+     domain: [B站, 鬼畜], platforms: [B站, 抖音],
+     gloss: 电视剧《征服》卖瓜片段衍生的二创梗（「你这瓜保熟吗」）,
+     related: [sub_jinitaim],
+     source: 2003 年电视剧《征服》片段，2021 年二创翻红, confidence: 高}
+  - {id: sub_zhishixuebao, term: 芝士雪豹, kind: meme, register: 调侃, era: 2021-至今,
+     domain: [丁真二创], platforms: [B站, 抖音],
+     gloss: 丁真相关二创视频衍生的动物梗（雪豹+芝士口音）,
+     related: [sub_malou],
+     source: 2021 年丁真二创潮, confidence: 中}
+  - {id: sub_shidai, term: 时团, kind: meme, aliases: [TNT, 时代少年团], register: 中性, era: 2019-至今,
+     domain: [内娱, 粉圈], platforms: [微博, B站],
+     gloss: 中国男子演唱组合时代少年团的昵称,
+     related: [sub_baomihua, sub_neiyu],
+     source: 2019 年出道的中国男子演唱组合, confidence: 高}
+  - {id: sub_baomihua, term: 爆米花, kind: slang, register: 中性, era: 2019-至今,
+     domain: [内娱, 粉圈], platforms: [微博],
+     gloss: 时代少年团粉丝的官方昵称,
+     related: [sub_shidai],
+     source: 该组合官方粉丝名, confidence: 高}
+
+  # ---- 圈层文化与实践 ------------------------------------------------------
+  - {id: sub_tongren, term: 同人圈, kind: community, register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [LOFTER, AO3, 微博],
+     gloss: 基于既有作品进行二次创作的爱好者圈子,
+     related: [sub_taitai, sub_chanliang, sub_lengquan, sub_laotefu],
+     source: 二次创作文化，公开资料通行, confidence: 高}
+  - {id: sub_taitai, term: 太太, kind: slang, register: 褒义, era: 2010s-至今,
+     domain: [同人, 创作], platforms: [LOFTER, 微博],
+     gloss: 对高水平创作者的尊称,
+     related: [sub_tongren, sub_chanliang],
+     source: 同人圈通行尊称, confidence: 高}
+  - {id: sub_chanliang, term: 产粮, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [同人, 创作], platforms: [LOFTER, 微博],
+     gloss: 创作同人内容（「粮」即内容）,
+     related: [sub_tongren, sub_wakeng],
+     source: 同人圈通行语汇, confidence: 高}
+  - {id: sub_lengquan, term: 冷圈, kind: community, register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [LOFTER],
+     gloss: 爱好者少、产出少的圈子（与温圈相对）,
+     related: [sub_tongren, sub_wenquan],
+     source: 同人圈通行语汇, confidence: 高}
+  - {id: sub_wenquan, term: 温圈, kind: community, register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [LOFTER],
+     gloss: 热度中庸的圈子（与冷圈、北极圈相对）,
+     related: [sub_lengquan],
+     source: 同人圈通行语汇, confidence: 高}
+  - {id: sub_ooc, term: OOC, kind: slang, aliases: [Out Of Character], register: 中性, era: 2010s-至今,
+     domain: [同人, 语C], platforms: [LOFTER],
+     gloss: 角色性格偏离原作（Out Of Character 缩写）,
+     related: [sub_AU, sub_tongren],
+     source: 同人圈通行缩写, confidence: 高}
+  - {id: sub_AU, term: AU, kind: slang, aliases: [Alternate Universe], register: 中性, era: 2010s-至今,
+     domain: [同人, 创作], platforms: [LOFTER],
+     gloss: 平行宇宙设定：把角色放进另一世界线,
+     related: [sub_ooc, sub_sishe],
+     source: 同人圈通行缩写, confidence: 高}
+  - {id: sub_sishe, term: 私设, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [同人, 设圈], platforms: [LOFTER, 半次元],
+     gloss: 作者自行补充的原创设定,
+     related: [sub_AU, sub_OC, sub_shequan],
+     source: 同人圈通行语汇, confidence: 高}
+  - {id: sub_OC, term: OC, kind: slang, aliases: [Original Character, 自设], register: 中性, era: 2010s-至今,
+     domain: [同人, 设圈], platforms: [半次元, LOFTER],
+     gloss: 原创角色（自设即自己的原创角色设定）,
+     related: [sub_sishe, sub_shequan],
+     source: 同人与设圈通行缩写, confidence: 高}
+  - {id: sub_gugu, term: 咕咕, kind: practice, register: 调侃, era: 2010s-至今,
+     domain: [创作], platforms: [LOFTER, 晋江],
+     gloss: 拖更、放鸽子（鸽子叫声的谐音）,
+     related: [sub_wakeng, sub_tiankeng],
+     source: 创作者圈通行语汇, confidence: 高}
+  - {id: sub_wakeng, term: 挖坑, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [网文, 创作], platforms: [晋江, LOFTER],
+     gloss: 开新作或留下悬念,
+     related: [sub_tiankeng, sub_qikeng],
+     source: 网文圈通行语汇, confidence: 高}
+  - {id: sub_tiankeng, term: 填坑, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [网文, 创作], platforms: [晋江, LOFTER],
+     gloss: 完结或解开悬念,
+     related: [sub_wakeng, sub_qikeng],
+     source: 网文圈通行语汇, confidence: 高}
+  - {id: sub_qikeng, term: 弃坑, kind: practice, register: 贬义, era: 2010s-至今,
+     domain: [网文, 创作], platforms: [晋江, LOFTER],
+     gloss: 停止更新，放弃作品,
+     related: [sub_wakeng, sub_gugu],
+     source: 网文圈通行语汇, confidence: 高}
+  - {id: sub_xiancao, term: 仙草, kind: slang, register: 褒义, era: 2010s-至今,
+     domain: [网文], platforms: [晋江, 龙的天空],
+     gloss: 质量极高的作品（粮草分级：粮草-仙草-毒草）,
+     related: [sub_ducao, sub_yangfei],
+     source: 网文圈粮草分级体系, confidence: 高}
+  - {id: sub_ducao, term: 毒草, kind: slang, register: 贬义, era: 2010s-至今,
+     domain: [网文], platforms: [晋江, 龙的天空],
+     gloss: 质量极差、读了后悔的作品,
+     related: [sub_xiancao],
+     source: 网文圈粮草分级体系, confidence: 高}
+  - {id: sub_yangfei, term: 养肥, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [网文], platforms: [晋江],
+     gloss: 等连载攒够篇幅再读,
+     related: [sub_shuhuang],
+     source: 网文圈通行语汇, confidence: 高}
+  - {id: sub_shuhuang, term: 书荒, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [网文], platforms: [晋江, 龙的天空],
+     gloss: 找不到想读的作品的空窗期,
+     related: [sub_yangfei],
+     source: 网文圈通行语汇, confidence: 高}
+  - {id: sub_guzi, term: 谷子, kind: slang, aliases: [goods], register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [淘宝, 微博],
+     gloss: 周边商品的音译（goods），徽章、卡片等,
+     related: [sub_baji, sub_chigu, sub_guquan],
+     source: 谷圈 2023 年爆火后全网通行, confidence: 高}
+  - {id: sub_baji, term: 吧唧, kind: slang, aliases: [badge], register: 中性, era: 2020s-至今,
+     domain: [谷圈], platforms: [淘宝],
+     gloss: 徽章类谷子的音译,
+     related: [sub_guzi, sub_tongbao],
+     source: 谷圈通行音译, confidence: 高}
+  - {id: sub_tongbao, term: 痛包, kind: practice, register: 中性, era: 2020s-至今,
+     domain: [痛文化], platforms: [小红书, 微博],
+     gloss: 挂满徽章谷子的包，「痛」文化的外露展示,
+     related: [sub_baji, sub_tongwenhua, sub_saigu],
+     source: 痛文化（ita-bag）入华, confidence: 高}
+  - {id: sub_chigu, term: 吃谷, kind: practice, register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [淘宝, 微博],
+     gloss: 购买谷子,
+     related: [sub_guzi, sub_pintuan, sub_xianqie],
+     source: 谷圈通行语汇, confidence: 高}
+  - {id: sub_pintuan, term: 拼团, kind: practice, register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [微博, QQ群],
+     gloss: 多人合买以摊平成本的团购方式,
+     related: [sub_chigu],
+     source: 谷圈通行交易方式, confidence: 高}
+  - {id: sub_xianqie, term: 现切, kind: practice, register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [淘宝],
+     gloss: 现场切割包装的销售形式（与全款预售相对）,
+     related: [sub_chigu, sub_pintuan],
+     source: 谷圈销售术语, confidence: 高}
+  - {id: sub_saigu, term: 晒谷, kind: practice, register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [小红书, 微博],
+     gloss: 展示收藏的谷子,
+     related: [sub_chigu, sub_tongbao],
+     source: 谷圈展示行为, confidence: 高}
+  - {id: sub_guquan, term: 谷圈, kind: community, register: 中性, era: 2023-至今,
+     domain: [谷圈], platforms: [微博, 淘宝],
+     gloss: 周边徽章收藏爱好者圈子,
+     related: [sub_guzi, sub_chigu, sub_tongwenhua],
+     source: 2023 年爆火的收藏亚文化圈, confidence: 高}
+  - {id: sub_tongwenhua, term: 痛文化, kind: community, register: 中性, era: 2010s-至今,
+     domain: [痛文化], platforms: [B站, 小红书],
+     gloss: 将二次元图案外露装饰于物品（包/车/楼）的文化,
+     related: [sub_tongbao, sub_guquan],
+     source: 日本 ita 文化入华, confidence: 高}
+  - {id: sub_sankeng, term: 三坑, kind: community, register: 中性, era: 2010s-至今,
+     domain: [服饰亚文化], platforms: [小红书],
+     gloss: 汉服、JK 制服、洛丽塔三大服饰圈,
+     related: [sub_hanfu, sub_lo],
+     source: 服饰亚文化圈通行合称, confidence: 高}
+  - {id: sub_hanfu, term: 汉服, kind: community, register: 中性, era: 2000s-至今,
+     domain: [服饰亚文化], platforms: [小红书, B站],
+     gloss: 汉民族传统服饰复兴运动及其着装实践,
+     related: [sub_sankeng, style_newchinese],
+     source: 公开文化运动, confidence: 高}
+  - {id: sub_lo, term: 洛丽塔, kind: community, aliases: [Lolita, lo娘], register: 中性, era: 2010s-至今,
+     domain: [服饰亚文化], platforms: [小红书],
+     gloss: 洛丽塔风格服饰及着装者（lo 娘）,
+     related: [sub_sankeng],
+     source: 日本服饰风格入华, confidence: 高}
+  - {id: sub_yuc, term: 语C, kind: community, register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [QQ, 贴吧],
+     gloss: 语言 cosplay：以文字进行角色扮演,
+     related: [sub_ooc, sub_tongren],
+     source: 文字角色扮演圈层实践, confidence: 高}
+  - {id: sub_laotefu, term: 老福特, kind: community, aliases: [LOFTER], register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [LOFTER],
+     gloss: 网易 LOFTER 社区的昵称，同人创作主阵地,
+     related: [sub_tongren, sub_ao3],
+     source: LOFTER 为网易旗下创作社区, confidence: 高}
+  - {id: sub_ao3, term: AO3, kind: community, aliases: [凹三, Archive of Our Own], register: 中性, era: 2010s-至今,
+     domain: [同人], platforms: [AO3],
+     gloss: Archive of Our Own，同人作品存档网站,
+     related: [sub_tongren, sub_laotefu],
+     source: 2019 年得雨果奖的同人存档网站, confidence: 高}
+  - {id: sub_jinjiang, term: 晋江, kind: community, aliases: [晋江文学城], register: 中性, era: 2000s-至今,
+     domain: [网文], platforms: [晋江],
+     gloss: 晋江文学城，女性向网文主阵地,
+     related: [sub_shuhuang, sub_wakeng],
+     source: 2003 年上线的文学网站, confidence: 高}
+  - {id: sub_neiyu, term: 内娱, kind: community, register: 中性, era: 2020s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 中国大陆娱乐圈（与韩娱、日娱相对）,
+     related: [sub_xiufen, sub_daiba, sub_shidai],
+     source: 粉圈通行简称, confidence: 高}
+  - {id: sub_xiufen, term: 秀粉, kind: community, register: 中性, era: 2018-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 选秀节目粉丝,
+     related: [sub_neiyu, sub_datou],
+     source: 2018 年选秀潮起的粉丝类型, confidence: 高}
+  - {id: sub_daiba, term: 待爆, kind: slang, register: 中性, era: 2020s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 等待走红（常用于形容有潜力艺人）,
+     related: [sub_neiyu],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_zhifen, term: 脂粉, kind: slang, register: 贬义, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 职业粉丝，受雇引导粉圈舆论,
+     related: [sub_dafen, sub_kongping],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_dafen, term: 大粉, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 粉丝群体中有影响力的核心人物,
+     related: [sub_zhifen, sub_sanfen],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_sanfen, term: 散粉, kind: slang, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 无组织的普通粉丝个体,
+     related: [sub_dafen],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_kongping, term: 控评, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 控制评论区方向与可见性,
+     related: [sub_zhifen, sub_fanhei],
+     source: 粉圈通行实践, confidence: 高}
+  - {id: sub_fanhei, term: 反黑, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 有组织地反驳负面信息与投诉,
+     related: [sub_kongping],
+     source: 粉圈通行实践, confidence: 高}
+  - {id: sub_xinaobao, term: 洗脑包, kind: slang, register: 贬义, era: 2020-至今,
+     domain: [粉圈], platforms: [豆瓣, 微博],
+     gloss: 单方叙事经过包装的灌输材料,
+     related: [sub_xiaozuowen],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_xiaozuowen, term: 小作文, kind: slang, register: 中性, era: 2020-至今,
+     domain: [粉圈], platforms: [微博, 豆瓣],
+     gloss: 长篇控诉或抒情文（粉圈事件标配）,
+     related: [sub_xinaobao],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_tongdan, term: 同担拒否, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [日娱], platforms: [微博],
+     gloss: 不接受与他人喜欢同一对象（同担）,
+     related: [sub_benming],
+     source: 日饭圈层实践入华, confidence: 高}
+  - {id: sub_kaihe, term: 开盒, kind: practice, register: 贬义, era: 2020-至今,
+     domain: [网络暴力], platforms: [全网],
+     gloss: 非法人肉搜索并公开他人隐私信息的行为,
+     sensitivity: 高危, permission: 禁外发,
+     related: [sub_renrousousuo],
+     source: 网络暴力行为，公共媒体广泛报道, confidence: 高}
+  - {id: sub_renrousousuo, term: 人肉搜索, kind: practice, register: 贬义, era: 2000s-至今,
+     domain: [网络暴力], platforms: [全网],
+     gloss: 通过网络协作搜集并公开个人信息的侵害行为,
+     sensitivity: 高危, permission: 禁外发,
+     related: [sub_kaihe],
+     source: 公共媒体广泛报道的网络现象, confidence: 高}
+
+  # ---- 语体 / 语料体裁 ------------------------------------------------------
+  - {id: sub_danmu, term: 弹幕语体, kind: register, register: 中性, era: 2010s-至今,
+     domain: [语料], platforms: [B站, 抖音],
+     gloss: 视频弹幕的即时吐槽体：短促、同步、共时共鸣,
+     related: [sub_qianfang, sub_yeqinghui],
+     source: 弹幕文化的语言观察, confidence: 高}
+  - {id: sub_xhs, term: 小红书文案体, kind: register, register: 中性, era: 2018-至今,
+     domain: [语料], platforms: [小红书],
+     gloss: 关键词前置、emoji 分隔、口语化推荐的种草文体,
+     related: [sub_zhongcao, sub_weibo],
+     source: 小红书平台文体观察, confidence: 高}
+  - {id: sub_tieba, term: 贴吧老哥体, kind: register, register: 调侃, era: 2010s-至今,
+     domain: [语料], platforms: [百度贴吧],
+     gloss: 直给暴躁、谐音梗密集、楼层文化的口语体,
+     related: [sub_xieying],
+     source: 百度贴吧语言观察, confidence: 高}
+  - {id: sub_weibo, term: 微博语录体, kind: register, register: 中性, era: 2010s-至今,
+     domain: [语料], platforms: [微博],
+     gloss: 短句+话题标签+# 格式的金句式文体,
+     related: [sub_xhs],
+     source: 微博平台文体观察, confidence: 高}
+  - {id: sub_zhihu, term: 知乎体, kind: register, register: 中性, era: 2011-至今,
+     domain: [语料], platforms: [知乎],
+     gloss: 「谢邀」「利益相关」开篇、长文论证的问答文体,
+     related: [sub_xieying],
+     source: 知乎平台文体观察, confidence: 高}
+  - {id: sub_xieying, term: 谢邀体, kind: register, register: 调侃, era: 2010s-至今,
+     domain: [语料], platforms: [知乎, 豆瓣],
+     gloss: 以「谢邀」开场的答题开场白（已固化成梗）,
+     related: [sub_zhihu],
+     source: 知乎文体衍生的套路化开场, confidence: 高}
+  - {id: sub_koubo, term: 短视频口播体, kind: register, register: 中性, era: 2018-至今,
+     domain: [语料], platforms: [抖音, 快手],
+     gloss: 三秒钩子、口语重复、指令句收尾的口播文体,
+     related: [sub_boti],
+     source: 短视频平台语言观察, confidence: 高}
+  - {id: sub_guichong, term: 鬼畜素材体, kind: register, register: 调侃, era: 2010s-至今,
+     domain: [语料], platforms: [B站],
+     gloss: 重复押韵循环、音画对位的二创文体,
+     related: [sub_jinitaim, sub_huaqiang],
+     source: B站鬼畜区语言观察, confidence: 高}
+  - {id: sub_biaoti, term: 标题党体, kind: register, register: 贬义, era: 2000s-至今,
+     domain: [语料], platforms: [全网],
+     gloss: 以悬念与夸张标题骗取点击的文体,
+     related: [sub_yingxiaohao],
+     source: 互联网内容生态通行概念, confidence: 高}
+  - {id: sub_yingxiaohao, term: 营销号体, kind: register, register: 贬义, era: 2010s-至今,
+     domain: [语料], platforms: [全网],
+     gloss: 模板化搬运、AI 配音腔的批量内容文体,
+     related: [sub_biaoti],
+     source: 互联网内容生态通行概念, confidence: 高}
+  - {id: sub_fafangwenxue, term: 发疯文学, kind: register, register: 调侃, era: 2022-至今,
+     domain: [语料], platforms: [豆瓣, 微博],
+     gloss: 夸张崩溃式宣泄的文体（长句堆叠、情绪失控）,
+     related: [sub_fafang, sub_jingshenzhuangkuang],
+     source: 2022 年豆瓣小组兴起的文体, confidence: 高}
+  - {id: sub_shushu, term: 鼠鼠文学, kind: register, register: 自嘲, era: 2022-至今,
+     domain: [语料], platforms: [百度贴吧, B站],
+     gloss: 底层自嘲式表达的文体（鼠鼠我呀……）,
+     related: [sub_tieba, sub_niuma],
+     source: 2022 年贴吧兴起的文体, confidence: 高}
+  - {id: sub_feihua, term: 废话文学, kind: register, register: 调侃, era: 2021-至今,
+     domain: [语料], platforms: [B站, 豆瓣],
+     gloss: 信息量为零的正确废话文体（听君一席话，如听一席话）,
+     related: [sub_fafangwenxue],
+     source: 2021 年 B站兴起的文体, confidence: 高}
+  - {id: sub_qiongqiong, term: 琼瑶体, kind: register, register: 中性, era: 1990s-至今,
+     domain: [语料], platforms: [全网],
+     gloss: 排比、感叹、抒情的爱情对白文体,
+     related: [sub_zhenhuan],
+     source: 琼瑶剧对白风格, confidence: 高}
+  - {id: sub_zhenhuan, term: 甄嬛体, kind: register, register: 中性, era: 2010s-至今,
+     domain: [语料], platforms: [全网],
+     gloss: 古风含蓄、文言腔调的网络仿写文体,
+     related: [sub_qiongqiong],
+     source: 《甄嬛传》台词仿写体, confidence: 高}
+  - {id: sub_yinv, term: 乙女游戏文案体, kind: register, register: 中性, era: 2010s-至今,
+     domain: [语料], platforms: [手游],
+     gloss: 第二人称代入、选项分支、亲密距离把控的视觉小说文体,
+     related: [sub_qingtou],
+     source: 乙女游戏文案实践观察, confidence: 高}
+  - {id: sub_qingxiaoshuo, term: 轻小说标题体, kind: register, register: 调侃, era: 2010s-至今,
+     domain: [语料], platforms: [B站, 轻小说平台],
+     gloss: 超长说明性标题的文体（全长即卖点）,
+     related: [sub_wangwen],
+     source: 日本轻小说标题传统, confidence: 高}
+  - {id: sub_wangwen, term: 网文标题体, kind: register, register: 中性, era: 2010s-至今,
+     domain: [语料], platforms: [起点, 晋江],
+     gloss: 「重返XX」「XX那些年」的钩子式标题文体,
+     related: [sub_qingxiaoshuo, sub_jinjiang],
+     source: 网文平台标题生态观察, confidence: 高}
+  - {id: sub_douban, term: 豆瓣体, kind: register, register: 中性, era: 2005-至今,
+     domain: [语料], platforms: [豆瓣],
+     gloss: 文艺评析、豆列收藏、冷幽默的文体,
+     related: [sub_zhihu],
+     source: 豆瓣平台文体观察, confidence: 高}
+  - {id: sub_hupu, term: 虎扑体, kind: register, register: 调侃, era: 2010s-至今,
+     domain: [语料], platforms: [虎扑],
+     gloss: 直男评分、步行街、句式接龙的体育社区文体,
+     related: [sub_tieba],
+     source: 虎扑社区语言观察, confidence: 高}
+  - {id: sub_boti, term: 播客体, kind: register, register: 中性, era: 2020-至今,
+     domain: [语料], platforms: [抖音, 淘宝直播],
+     gloss: 直播间话术：倒数、上链接、催单、福利口径,
+     related: [sub_koubo],
+     source: 电商直播语言观察, confidence: 高}
+  - {id: sub_duibi, term: 对暗号, kind: practice, register: 调侃, era: 2020s-至今,
+     domain: [通用], platforms: [全网],
+     gloss: 用圈内梗识别同好的互动仪式,
+     related: [sub_danmu, sub_shuangchu],
+     source: 圈层认同行为观察, confidence: 中}
+
+  # ---- 补录（链接校验器要求）--------------------------------------------
+  - {id: sub_juanwang, term: 卷王, kind: slang, register: 调侃, era: 2020-至今,
+     domain: [职场, 校园], platforms: [全网],
+     gloss: 在竞争中卷到极致的人,
+     related: [sub_neijuan, sub_tangping],
+     source: 由「内卷」派生的流行语, confidence: 高}
+  - {id: sub_paqiang, term: 爬墙, kind: practice, register: 中性, era: 2010s-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 粉圈术语：换一个喜欢的对象（从墙头爬走）,
+     related: [sub_qiangtou, sub_benming],
+     source: 粉圈通行语汇, confidence: 高}
+  - {id: sub_xiaoheizi, term: 小黑子, kind: slang, register: 调侃, era: 2019-至今,
+     domain: [B站, 鬼畜], platforms: [B站],
+     gloss: 鸡你太美梗中对调侃者的戏称（「小黑子露出鸡脚」）,
+     related: [sub_jinitaim],
+     source: 2019 年起 B站鬼畜文化通行, confidence: 高}
+  - {id: sub_shequan, term: 设圈, kind: community, register: 中性, era: 2010s-至今,
+     domain: [设圈], platforms: [半次元, 微博],
+     gloss: 角色设定约稿与交易的圈子,
+     related: [sub_OC, sub_sishe],
+     source: 约稿文化圈层观察, confidence: 高}
+  - {id: sub_datou, term: 打投, kind: practice, register: 中性, era: 2018-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 为偶像打榜投票的集中行动,
+     related: [sub_xiufen, sub_zuoshuju],
+     source: 2018 年选秀潮起的粉圈实践, confidence: 高}
+  - {id: sub_zuoshuju, term: 做数据, kind: practice, register: 中性, era: 2018-至今,
+     domain: [粉圈], platforms: [微博],
+     gloss: 有组织地制造转评赞等数据,
+     related: [sub_datou, sub_kongping],
+     source: 粉圈数据实践, confidence: 高}
+  - {id: sub_qingtou, term: 情头, kind: slang, aliases: [情侣头像], register: 中性, era: 2010s-至今,
+     domain: [社交], platforms: [QQ, 微信],
+     gloss: 情侣头像，成对使用的头像,
+     related: [sub_keCP],
+     source: 社交平台通行语汇, confidence: 高}

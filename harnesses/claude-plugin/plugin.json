@@ -1,8 +1,8 @@
 {
   "name": "collab-charter",
   "displayName": "Collab Charter",
-  "description": "《用户协作宪章》v3.1 的执行内核：信息流路由、冲突裁决、安全闸门、记忆回流，附特征簇提示词诊断器。把用户侧的协作规范变成可调用、可验证的运行层。",
-  "version": "3.1.0",
+  "description": "《用户协作宪章》v3.2 的执行内核：信息流路由、冲突裁决、安全闸门、记忆回流，附特征簇提示词诊断器、知识库语义场深挖与符号锚定求解。把用户侧的协作规范变成可调用、可验证的运行层。",
+  "version": "3.2.0",
   "author": {
     "name": "collab-charter contributors"
   },
@@ -25,7 +25,7 @@
     "collab-charter": {
       "command": "python3",
       "args": ["${CLAUDE_PLUGIN_ROOT}/interfaces/mcp_server.py"],
-      "description": "宪章内核：条款查询、路由决策、冲突裁决、安全闸门、特征簇提示词诊断、记忆沉淀与检索"
+      "description": "宪章内核：条款查询、路由决策、冲突裁决、安全闸门、特征簇提示词诊断、记忆沉淀与检索、符号锚定求解、知识库语义场深挖"
     }
   }
 }

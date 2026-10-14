@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "collab-charter"
-version = "3.1.0"
-description = "用户协作宪章 v3.1 的 Agent 执行内核：把用户侧的协作规范变成可加载、可调用、可验证的运行层"
+version = "3.2.0"
+description = "用户协作宪章 v3.2 的 Agent 执行内核：把用户侧的协作规范变成可加载、可调用、可验证的运行层"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -29,7 +29,8 @@ dependencies = ["pyyaml>=6.0"]
 
 [project.optional-dependencies]
 server = ["fastapi>=0.100", "uvicorn>=0.23"]
-dev = ["pytest>=7.0"]
+anchor = ["z3-solver>=4.12"]
+dev = ["pytest>=7.0", "z3-solver>=4.12"]
 
 [project.scripts]
 collab-charter = "collab_charter.cli:main"
