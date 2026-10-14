@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# collab-charter · SessionStart hook
+#
+# 在每个会话开始时，把 using-charter 技能注入模型上下文，使宪章在用户
+# 还没来得及粘贴它之前就已经生效。
+#
+# 本脚本刻意做了三件看似啰嗦的事，都是踩过的坑（做法参考 superpowers）：
+#   1. 不用 dirname / cat —— SessionStart 可能在任何 PATH 修复钩子之前运行，
+#      此时 PATH 可能为空；改用 bash 内建参数展开与 $(<file)。
+#   2. 用 ${s//old/new} 做 JSON 转义 —— 单次 C 级扫描，比逐字符循环快两个数量级。
+#   3. 按平台分别输出 hook JSON —— Cursor 要 additional_context，Claude Code 要
+#      hookSpecificOutput.additionalContext，SDK 标准是顶层 additionalContext；
+#      同时输出多个字段会导致重复注入。
+
+set -euo pipefail
+
+case "$0" in
+  */*|*\\*) SCRIPT_DIR="$(cd "${0%[/\\]*}" && pwd)" ;;
+  *) SCRIPT_DIR="$(pwd)" ;;
+esac
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+skill_md="${PLUGIN_ROOT}/skills/using-charter/SKILL.md"
+if [ -r "$skill_md" ]; then
+  skill_content="$(<"$skill_md")"
+else
+  skill_content="Warning: skills/using-charter/SKILL.md not readable."
+fi
+
+escape_for_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '%s' "$s"
+}
+
+escaped="$(escape_for_json "$skill_content")"
+session_context="<EXTREMELY_IMPORTANT>\n本会话已装载《用户协作宪章》执行内核。\n\n以下是 using-charter 技能的全文——你与用户协作时的第一入口。其余技能用 Skill 工具按需加载；需要精确条款、路由决策、冲突裁决或提示词诊断时，调用 MCP 工具 collab-charter 系列。\n\n${escaped}\n</EXTREMELY_IMPORTANT>"
+
+emit_json() {
+  # Windows + Git Bash 下宿主可能提前关闭 stdout，令 printf 报 EPIPE 并因
+  # set -e 逃逸成启动诊断；用 cat 吸收 EPIPE，PATH 坏掉时退回 printf。
+  if command -v cat >/dev/null 2>&1; then
+    printf "$@" | cat
+  else
+    printf "$@"
+  fi
+}
+
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  emit_json '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${GEMINI_CLI:-}" ] || [ -n "${GEMINI_PLUGIN_ROOT:-}" ]; then
+  emit_json '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  emit_json '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+  emit_json '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

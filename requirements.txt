@@ -1,0 +1,12 @@
+# collab-charter 运行时依赖
+#
+# 核心只需一项。MCP server 与 fcslint 的解析/规则/评分部分均为标准库实现，
+# 不引第三方包——这样整份仓库拷到任何沙箱都能直接运行，无需先建虚拟环境。
+pyyaml>=6.0
+
+# 可选：HTTP 接口（python3 -m collab_charter.http_api）
+# fastapi>=0.100
+# uvicorn>=0.23
+
+# 可选：开发与测试
+# pytest>=7.0

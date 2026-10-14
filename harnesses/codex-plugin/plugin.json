@@ -1,0 +1,37 @@
+{
+  "name": "collab-charter",
+  "version": "3.1.0",
+  "description": "《用户协作宪章》v3.1 的执行内核：信息流路由、冲突裁决、安全闸门、记忆回流，附特征簇提示词诊断器。",
+  "author": {
+    "name": "collab-charter contributors"
+  },
+  "homepage": "https://github.com/LucasDevKid9/collab-charter",
+  "repository": "https://github.com/LucasDevKid9/collab-charter",
+  "license": "MIT",
+  "keywords": [
+    "agent",
+    "llm",
+    "collaboration",
+    "charter",
+    "information-flow",
+    "mcp",
+    "ai-skill"
+  ],
+  "skills": "./skills/",
+  "hooks": {},
+  "interface": {
+    "displayName": "Collab Charter",
+    "shortDescription": "用户协作宪章的执行内核",
+    "longDescription": "把用户侧的协作规范变成可执行的运行层：八站信息流管线（安全闸门→意图→认知镜像→记忆检索→角色协作→裁决→输出→回流）、五级优先级、冲突裁决规则引擎、敏感度×权限安全闸门、记忆流沉淀与衰减，以及对图像提示词的《模块化特征簇标记语法》诊断。",
+    "developerName": "collab-charter contributors",
+    "category": "Productivity",
+    "capabilities": ["Instructions", "Tools"],
+    "websiteURL": "https://github.com/LucasDevKid9/collab-charter"
+  },
+  "mcpServers": {
+    "collab-charter": {
+      "command": "python3",
+      "args": ["./interfaces/mcp_server.py"]
+    }
+  }
+}

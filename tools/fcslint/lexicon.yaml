@@ -1,0 +1,255 @@
+# ============================================================================
+# 特征簇词条知识库
+# ----------------------------------------------------------------------------
+# 支撑 fcslint 的规则判定与评分。数据来源：
+#   《模块化特征簇标记语法》2.1 六大功能簇 / 2.3 词条类型学 / 6.1 媒介链路溯源
+#   + 附录 A 三个案例的全部词条
+#   + cognitive-core v3.1 references/style-library.md 的风格维度
+#
+# 字段说明：
+#   cluster : 六大功能簇之一（subject/render/color/medium/distortion/light）
+#   kind    : entity 实体视觉 / abstract 抽象概念 / tech 技术参数
+#   mapping : high 高映射 / mid 中映射 / low 低映射
+#   chain   : 媒介链路环节（draw/digitize/display/archive），无则离链
+# ============================================================================
+
+version: 1
+
+clusters:
+  subject:    { zh: 主体实体, order: 1, desc: 画面主体与构图取景，置于最前 }
+  render:     { zh: 原生绘制, order: 2, desc: 绘制技法与美术属性 }
+  color:      { zh: 色彩系统, order: 3, desc: 色深、抖动、套印与调色 }
+  medium:     { zh: 媒介采集, order: 4, desc: 采集—输出—存档链路上的痕迹 }
+  distortion: { zh: 畸变图层, order: 5, desc: 损伤失真与图层结构 }
+  light:      { zh: 光影氛围, order: 6, desc: 光影、氛围与画幅，置于末尾 }
+
+kinds:
+  entity:   { zh: 实体视觉, mapping_hint: high, weight_max: 1.4, desc: 直接对应可成像特征，承担画面主干 }
+  abstract: { zh: 抽象概念, mapping_hint: low,  weight_max: 0.99, desc: 视觉映射弱，仅作气质约束 }
+  tech:     { zh: 技术参数, mapping_hint: high, weight_max: 1.4, desc: 画幅比例等确定性约束 }
+
+# ---------------------------------------------------------------------------
+# 词条表：term 为匹配子串；按匹配长度降序优先，避免「特写」吃掉「极度特写」
+# ---------------------------------------------------------------------------
+entries:
+  # ---- 主体实体 --------------------------------------------------------
+  - {term: visual novel sprite, cluster: subject, kind: entity, mapping: high}
+  - {term: 视觉小说立绘, cluster: subject, kind: entity, mapping: high}
+  - {term: 古早立绘, cluster: subject, kind: entity, mapping: high}
+  - {term: 立绘, cluster: subject, kind: entity, mapping: high}
+  - {term: 半身像, cluster: subject, kind: entity, mapping: high}
+  - {term: 极度特写, cluster: subject, kind: entity, mapping: high}
+  - {term: 特写镜头, cluster: subject, kind: entity, mapping: high}
+  - {term: 特写, cluster: subject, kind: entity, mapping: high}
+  - {term: 面部局部, cluster: subject, kind: entity, mapping: high}
+  - {term: 眼部, cluster: subject, kind: entity, mapping: high}
+  - {term: 唇部, cluster: subject, kind: entity, mapping: high}
+  - {term: 瞳孔图案, cluster: subject, kind: entity, mapping: high}
+  - {term: 长睫毛, cluster: subject, kind: entity, mapping: high}
+  - {term: 反光唇釉, cluster: subject, kind: entity, mapping: high}
+  - {term: 鲜艳光泽, cluster: subject, kind: entity, mapping: high}
+  - {term: 戏服, cluster: subject, kind: entity, mapping: high}
+  - {term: 对话框, cluster: subject, kind: entity, mapping: high}
+  - {term: 单人, cluster: subject, kind: entity, mapping: mid}
+  - {term: 女性角色, cluster: subject, kind: entity, mapping: mid}
+  - {term: 中景, cluster: subject, kind: entity, mapping: mid}
+  - {term: 全身, cluster: subject, kind: entity, mapping: mid}
+
+  # ---- 原生绘制 --------------------------------------------------------
+  - {term: 赛璐璐平涂, cluster: render, kind: entity, mapping: high}
+  - {term: 赛璐璐, cluster: render, kind: entity, mapping: high}
+  - {term: 平涂, cluster: render, kind: entity, mapping: high}
+  - {term: 硬边缘, cluster: render, kind: entity, mapping: high}
+  - {term: 粗描边, cluster: render, kind: entity, mapping: high}
+  - {term: 塑料感, cluster: render, kind: entity, mapping: mid}
+  - {term: 矢量, cluster: render, kind: entity, mapping: high}
+  - {term: 像素化, cluster: render, kind: entity, mapping: high}
+  - {term: 图层叠加, cluster: render, kind: entity, mapping: mid}
+  - {term: 排版, cluster: render, kind: entity, mapping: mid}
+  - {term: 丝网印刷, cluster: render, kind: entity, mapping: high}
+  - {term: 笔触, cluster: render, kind: entity, mapping: mid}
+
+  # ---- 色彩系统 --------------------------------------------------------
+  - {term: 16-bit indexed color, cluster: color, kind: entity, mapping: high}
+  - {term: 索引色, cluster: color, kind: entity, mapping: high}
+  - {term: Bayer dithering, cluster: color, kind: entity, mapping: high}
+  - {term: 抖动, cluster: color, kind: entity, mapping: high}
+  - {term: 色彩套印不准, cluster: color, kind: entity, mapping: high}
+  - {term: 套印, cluster: color, kind: entity, mapping: high}
+  - {term: 高溢色, cluster: color, kind: entity, mapping: mid}
+  - {term: 自动白平衡失误, cluster: color, kind: entity, mapping: mid}
+  - {term: 偏色, cluster: color, kind: entity, mapping: mid}
+  - {term: 发灰, cluster: color, kind: entity, mapping: mid}
+  - {term: 褪色, cluster: color, kind: entity, mapping: mid}
+  - {term: 有限套印, cluster: color, kind: entity, mapping: high}
+  - {term: 撞色, cluster: color, kind: entity, mapping: mid}
+  - {term: 荧光白, cluster: color, kind: entity, mapping: high}
+  - {term: 暗苔绿, cluster: color, kind: entity, mapping: high}
+  - {term: 肉粉色, cluster: color, kind: entity, mapping: high}
+  - {term: 深墨黑, cluster: color, kind: entity, mapping: high}
+  - {term: 冷白, cluster: color, kind: entity, mapping: mid}
+  - {term: 刀法, cluster: color, kind: entity, mapping: mid}
+  - {term: 胶片色阶, cluster: color, kind: entity, mapping: high}
+  - {term: 色彩弥散, cluster: color, kind: entity, mapping: mid}
+
+  # ---- 媒介采集 --------------------------------------------------------
+  - {term: CRT 扫描线, cluster: medium, kind: entity, mapping: high}
+  - {term: 扫描线, cluster: medium, kind: entity, mapping: high}
+  - {term: Hi8, cluster: medium, kind: entity, mapping: high}
+  - {term: 低保真, cluster: medium, kind: entity, mapping: high}
+  - {term: 低分辨率, cluster: medium, kind: entity, mapping: high}
+  - {term: 极低分辨率, cluster: medium, kind: entity, mapping: high}
+  - {term: 数字噪点, cluster: medium, kind: entity, mapping: high}
+  - {term: 噪点, cluster: medium, kind: entity, mapping: high}
+  - {term: 颗粒感, cluster: medium, kind: entity, mapping: high}
+  - {term: 颗粒, cluster: medium, kind: entity, mapping: high}
+  - {term: 高ISO, cluster: medium, kind: entity, mapping: mid}
+  - {term: 屏幕截图, cluster: medium, kind: entity, mapping: high}
+  - {term: 随意抓拍, cluster: medium, kind: entity, mapping: mid}
+  - {term: 随手拍, cluster: medium, kind: entity, mapping: mid}
+  - {term: 私密记录, cluster: medium, kind: entity, mapping: mid}
+  - {term: 时代印痕, cluster: medium, kind: entity, mapping: mid}
+  - {term: 压缩, cluster: medium, kind: entity, mapping: high}
+  - {term: JPEG, cluster: medium, kind: entity, mapping: high}
+  - {term: 色深, cluster: medium, kind: entity, mapping: mid}
+  - {term: 存档, cluster: medium, kind: entity, mapping: mid}
+  - {term: 原始未处理截图, cluster: medium, kind: entity, mapping: high}
+  - {term: 未处理截图, cluster: medium, kind: entity, mapping: high}
+  - {term: 全片ISO为同一固定值, cluster: medium, kind: entity, mapping: mid}
+  - {term: 屏摄, cluster: medium, kind: entity, mapping: high}
+  - {term: 盗版DV, cluster: medium, kind: entity, mapping: high}
+  - {term: 运动模糊, cluster: medium, kind: entity, mapping: mid}
+
+  # ---- 畸变图层 --------------------------------------------------------
+  - {term: 顶点抖动, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 仿射纹理映射扭曲, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 纹理映射, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 抠图伪影, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 伪影, cluster: distortion, kind: entity, mapping: high}
+  - {term: 色差, cluster: distortion, kind: entity, mapping: high}
+  - {term: 图层挤压, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 畸变, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 过度锐化, cluster: distortion, kind: entity, mapping: high}
+  - {term: 高压缩, cluster: distortion, kind: entity, mapping: high}
+  - {term: 拖尾, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 模糊, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 构图畸变, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 条形码, cluster: distortion, kind: entity, mapping: mid}
+  - {term: 水印, cluster: distortion, kind: entity, mapping: mid}
+
+  # ---- 光影氛围 --------------------------------------------------------
+  - {term: 全景深, cluster: light, kind: entity, mapping: high}
+  - {term: 平光, cluster: light, kind: entity, mapping: high}
+  - {term: 低动态范围, cluster: light, kind: entity, mapping: high}
+  - {term: 欠曝, cluster: light, kind: entity, mapping: high}
+  - {term: 高对比度, cluster: light, kind: entity, mapping: high}
+  - {term: 光感漫射, cluster: light, kind: entity, mapping: mid}
+  - {term: 柔光, cluster: light, kind: entity, mapping: mid}
+  - {term: 高光溢柔边, cluster: light, kind: entity, mapping: mid}
+  - {term: 光线不匀, cluster: light, kind: entity, mapping: mid}
+  - {term: 场景局促, cluster: light, kind: entity, mapping: mid}
+  - {term: 光线, cluster: light, kind: entity, mapping: mid}
+  - {term: 无情绪, cluster: light, kind: abstract, mapping: low}
+  - {term: 无机质氛围, cluster: light, kind: abstract, mapping: low}
+  - {term: 去除复杂光影, cluster: light, kind: entity, mapping: mid}
+  - {term: 冷寂感, cluster: light, kind: abstract, mapping: low}
+  - {term: 压抑氛围, cluster: light, kind: abstract, mapping: low}
+
+  # ---- 抽象概念（低映射，第二/四层） -----------------------------------
+  - {term: 存在主义焦虑, cluster: light, kind: abstract, mapping: low}
+  - {term: 宿命感, cluster: light, kind: abstract, mapping: low}
+  - {term: 过期焦虑, cluster: light, kind: abstract, mapping: low}
+  - {term: 审美疲劳, cluster: light, kind: abstract, mapping: low}
+  - {term: 数字身份过载, cluster: light, kind: abstract, mapping: low}
+  - {term: 童真, cluster: light, kind: abstract, mapping: low}
+  - {term: 媚俗, cluster: light, kind: abstract, mapping: low}
+  - {term: 戏剧感, cluster: light, kind: abstract, mapping: low}
+  - {term: 时代感, cluster: light, kind: abstract, mapping: low}
+  - {term: 复古氛围, cluster: light, kind: abstract, mapping: low}
+  - {term: 后超现实主义, cluster: light, kind: abstract, mapping: low}
+  - {term: 超现实主义, cluster: light, kind: abstract, mapping: low}
+  - {term: 私影像cult风, cluster: light, kind: abstract, mapping: low}
+  - {term: 奇情武侠, cluster: light, kind: abstract, mapping: low}
+  - {term: 网络核艺术, cluster: light, kind: abstract, mapping: low}
+  - {term: 数字废土, cluster: light, kind: abstract, mapping: low}
+  - {term: 窥视, cluster: light, kind: abstract, mapping: low}
+  - {term: 私密, cluster: light, kind: abstract, mapping: low}
+  - {term: 美学, cluster: light, kind: abstract, mapping: low}
+  - {term: 气质, cluster: light, kind: abstract, mapping: low}
+
+  # ---- 技术参数 --------------------------------------------------------
+  - {term: 原始比例, cluster: subject, kind: tech, mapping: high}
+  - {term: 竖版, cluster: subject, kind: tech, mapping: high}
+  - {term: 横版, cluster: subject, kind: tech, mapping: high}
+  - {term: 随机种子, cluster: light, kind: tech, mapping: high, invalid: true}
+  - {term: seed, cluster: light, kind: tech, mapping: high, invalid: true}
+
+# ---------------------------------------------------------------------------
+# 直接语义冲突对（8.3 冲突判定规则）：字面含义互斥，必须删除其一
+# ---------------------------------------------------------------------------
+direct_conflicts:
+  - {a: 颗粒感, b: 禁噪点, clause: "8.3", note: 一手要颗粒、一手禁噪点，字面互斥}
+  - {a: 噪点, b: 禁噪点, clause: "8.3", note: 同上}
+  - {a: 模糊, b: 极度清晰, clause: "8.3", note: 清晰度要求互斥}
+  - {a: 模糊, b: 清晰, clause: "8.3", note: 清晰度要求互斥}
+  - {a: 极低分辨率, b: 超高清晰, clause: "8.3", note: 分辨率要求互斥}
+  - {a: 禁止全图模糊, b: 有点模糊, clause: "8.3", note: 规范案例三显式禁止项被违反}
+  - {a: 无情绪, b: 情绪浓烈, clause: "8.3", note: 情绪指令互斥}
+
+# ---------------------------------------------------------------------------
+# 跨域逻辑冲突（8.3）：各自合理但来自两套独立影像体系，标记为可控风险
+# ---------------------------------------------------------------------------
+cross_domain_conflicts:
+  - {a: 胶片, b: 录像, clause: "8.3", note: 胶片链路与模拟磁带录像链路异源}
+  - {a: Agfacolor, b: Hi8, clause: "8.3", note: 规范案例二指出的典型异源组合}
+  - {a: 抠图伪影, b: 相机采集, clause: "8.3", note: 素材导出痕迹与相机采集痕迹不共存}
+  - {a: 舞台化, b: 偷拍, clause: "8.3", note: 观看机制矛盾}
+  - {a: 数码, b: 胶片, clause: "8.3", note: 数字与模拟链路异源}
+
+# ---------------------------------------------------------------------------
+# 媒介链路环节（6.1 媒介链路溯源法）
+# ---------------------------------------------------------------------------
+chain_stages:
+  draw:     {zh: 创作/绘制, desc: 绘制技法、美术属性}
+  digitize: {zh: 数字化采集, desc: 扫描、索引色、抖动}
+  display:  {zh: 硬件输出显示, desc: CRT、屏摄、扫描线}
+  archive:  {zh: 转录/截图/压缩存档, desc: 压缩、伪影、截图}
+
+# ---------------------------------------------------------------------------
+# 权重梯度参考（3.5 / 9.1）
+# ---------------------------------------------------------------------------
+weight_gradient:
+  subject:    {min: 1.2, max: 1.4}
+  render:     {min: 1.1, max: 1.3}
+  color:      {min: 1.1, max: 1.3}
+  medium:     {min: 0.8, max: 1.1}
+  distortion: {min: 0.8, max: 1.1}
+  light:      {min: 0.5, max: 0.8}
+global_weight_range: {min: 0.5, max: 1.4}
+
+# ---------------------------------------------------------------------------
+# 评分权重（5.4 控制力量化：四项加权）
+# ---------------------------------------------------------------------------
+scoring:
+  anchor_strength: 0.35   # 主体锚定强度
+  conflict_penalty: 0.25  # 冲突数量
+  abstract_ratio: 0.20    # 抽象词条占比
+  high_mapping_ratio: 0.20  # 高映射词条占比
+  style_domain: 0.0       # 风格域数量（附加扣分项，见 rules）
+
+style_domain_terms:
+  - 奇情武侠
+  - 私影像cult风
+  - 后超现实主义
+  - 超现实主义
+  - 网络核艺术
+  - 数字废土
+  - 赛博朋克
+  - 蒸汽波
+  - Y2K
+  - 千禧
+  - 邵氏
+  - 哥特
+  - 暗潮
+  - 洛可可
+  - 巴洛克

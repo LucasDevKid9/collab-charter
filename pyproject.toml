@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "collab-charter"
+version = "3.1.0"
+description = "用户协作宪章 v3.1 的 Agent 执行内核：把用户侧的协作规范变成可加载、可调用、可验证的运行层"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "collab-charter contributors" }]
+keywords = [
+  "agent",
+  "llm",
+  "collaboration",
+  "charter",
+  "information-flow",
+  "mcp",
+  "ai-skill",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: Chinese (Simplified)",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+server = ["fastapi>=0.100", "uvicorn>=0.23"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+collab-charter = "collab_charter.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/LucasDevKid9/collab-charter"
+Repository = "https://github.com/LucasDevKid9/collab-charter"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+collab_charter = ["charter.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tools", "."]
+addopts = "-q"
