@@ -55,7 +55,10 @@ from fcslint import analyze as fcslint_analyze  # noqa: E402
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "collab-charter"
-SERVER_VERSION = "3.2.0"
+SERVER_VERSION = "3.3.0"
+
+#: 兼容的新版协议版本（客户端用更新版本号时按客户端声明回显，避免握手失败）
+_KNOWN_PROTOCOL_PREFIXES = ("2024-", "2025-")
 
 
 # ---------------------------------------------------------------------------
@@ -541,16 +544,26 @@ def dispatch(req: dict[str, Any], registry: ToolRegistry) -> dict[str, Any] | No
     params = req.get("params") or {}
 
     if method == "initialize":
+        # 协议版本协商：客户端声明的已知版本按客户端回显，否则用本服务支持版本
+        client_proto = params.get("protocolVersion") or ""
+        proto = PROTOCOL_VERSION
+        if any(client_proto.startswith(p) for p in _KNOWN_PROTOCOL_PREFIXES):
+            proto = client_proto
         return _ok(
             req_id,
             {
-                "protocolVersion": PROTOCOL_VERSION,
-                "capabilities": {"tools": {"listChanged": False}},
+                "protocolVersion": proto,
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "resources": {},
+                    "prompts": {},
+                },
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
             },
         )
 
-    if method in ("notifications/initialized", "initialized"):
+    # 通知类消息一律不回（含 initialized / cancelled / progress 等）
+    if method.startswith("notifications/") or method == "initialized":
         return None
 
     if method == "ping":
@@ -572,6 +585,10 @@ def dispatch(req: dict[str, Any], registry: ToolRegistry) -> dict[str, Any] | No
         except Exception as exc:  # pragma: no cover - 兜底
             return _ok(req_id, _text_result(f"{type(exc).__name__}: {exc}", is_error=True))
         return _ok(req_id, _text_result(result))
+
+    # 资源/提示词目录：当前无自定义资源，返回空目录让客户端正常完成发现流程
+    if method in ("resources/list", "prompts/list"):
+        return _ok(req_id, {"resources": []} if "resources" in method else {"prompts": []})
 
     return _err(req_id, -32601, f"未实现的方法：{method}")
 

@@ -131,6 +131,34 @@ DEEP_WORDS = ("深挖", "展开")
 FAST_WORDS = ("快速",)
 SIMPLIFY_WORDS = ("简化",)
 
+#: 轻量任务复杂度判定（0.9 自动兜底）。确定性规则：命中即判，不叠加外部状态。
+_CREATIVE_MARKERS = (
+    "设计", "创作", "策划", "画", "写一篇", "写份", "写一个", "做一份", "做一张",
+    "生成图片", "生成视频", "海报", "剧本", "文案", "小说", "歌词", "方案书",
+    "配色", "logo", "Logo", "品牌", "拍摄",
+)
+_MULTI_STEP_MARKERS = (
+    "先", "再", "然后", "步骤", "分几步", "流程", "计划", "规划", "路线",
+    "阶段", "第一", "第二", "第三", "梳理", "拆解", "部署", "迁移",
+    "构建", "架构", "设计一个系统", "写代码", "实现", "开发",
+)
+_FILE_MARKERS = (
+    "文件", "文档", "上传", "附件", "本地", "读取", "解析",
+    "pdf", "PDF", "xlsx", "表格", "csv", "CSV", "word", "Word", "ppt", "PPT",
+)
+
+
+def _guess_task_complexity(user_text: str) -> dict[str, bool]:
+    """从用户文本启发式判定三类复杂度标记（无模型、确定性、可复现）。
+
+    规则口径：任一标记命中即认为该维度为真；全部未命中则保持 False。
+    这只是一个**兜底**——调用方显式传参时以显式值为准（见 ``plan``）。
+    """
+    creative = any(m in user_text for m in _CREATIVE_MARKERS)
+    multi_step = any(m in user_text for m in _MULTI_STEP_MARKERS)
+    local_files = any(m in user_text for m in _FILE_MARKERS)
+    return {"creative": creative, "multi_step": multi_step, "local_files": local_files}
+
 
 class Router:
     """按 0.3 / 0.9 规划并执行管线。"""
@@ -167,18 +195,31 @@ class Router:
         *,
         level: TaskLevel = TaskLevel.L2,
         user_text: str = "",
-        has_creative_output: bool = False,
-        has_multi_step_plan: bool = False,
-        has_local_files: bool = False,
+        has_creative_output: bool | None = None,
+        has_multi_step_plan: bool | None = None,
+        has_local_files: bool | None = None,
         shortcuts: Iterable[str] = (),
+        auto_guess: bool = True,
     ) -> Route:
-        """决定走全量还是快速通道，并给出可复述的理由。"""
+        """决定走全量还是快速通道，并给出可复述的理由。
+
+        复杂度标记语义：``None`` = 调用方未表态（``auto_guess=True`` 时由
+        内核从 ``user_text`` 启发式补位）；``True``/``False`` = 显式值，
+        显式值优先、不与猜测叠加。
+        """
         said = set(shortcuts) | {
             w for w in FAST_WORDS + DEEP_WORDS if w in user_text
         }
         deep_forcing = {
             "用户说「深挖 / 展开」",
         } if ({"深挖", "展开"} & said) else set()
+
+        if auto_guess and user_text:
+            guess = _guess_task_complexity(user_text)
+            has_creative_output = guess["creative"] if has_creative_output is None else has_creative_output
+            has_multi_step_plan = guess["multi_step"] if has_multi_step_plan is None else has_multi_step_plan
+            has_local_files = guess["local_files"] if has_local_files is None else has_local_files
+
         if has_creative_output:
             deep_forcing.add("任务涉及创造性产出")
         if has_multi_step_plan:
@@ -210,14 +251,32 @@ class Router:
         memory_updated: bool = False,
         agent_cannot: Sequence[str] = (),
         stage_hooks: dict[PipelineStage, Callable[[list[Flow]], list[Flow]]] | None = None,
+        mirror_fn: Callable[[list[Flow]], str] | None = None,
+        council_fn: Callable[[list[Flow]], list[Flow]] | None = None,
     ) -> tuple[PipelineRun, list[Flow]]:
-        """执行管线，返回（轨迹, 输出流）。"""
+        """执行管线，返回（轨迹, 输出流）。
+
+        ``stage_hooks``：**所有站点统一生效**的拦截点——每个站点在执行默认逻辑
+        前，若传入该站 hook，先对当前流列表做变换（可注入真实模型/工具结果）。
+        与早期版本不同，hook 不再只对 EMIT 生效。
+
+        ``mirror_fn`` / ``council_fn``：认知执行注入点。传入真实 LLM 回调时，
+        认知镜像（第 3 站）与三角角色协作（第 5 站）由回调产出真实内容；
+        未传入时回退到确定性模板（保持零依赖兜底）。
+        """
         route = route or self.plan()
         run = PipelineRun(route=route)
         current: list[Flow] = list(flows)
         hooks = stage_hooks or {}
 
+        def apply_hook(stage: PipelineStage) -> None:
+            fn = hooks.get(stage)
+            if fn:
+                nonlocal current
+                current = fn(current)
+
         for stage in route.stages:
+            apply_hook(stage)
             if stage is PipelineStage.SAFETY_GATE:
                 decisions = self.gate.inspect_all(current)
                 run.gate_decisions = decisions
@@ -253,7 +312,7 @@ class Router:
 
             elif stage is PipelineStage.MIRROR:
                 # 0.3-I2 强制节点
-                text = mirror_text or self._auto_mirror(current)
+                text = mirror_text or (mirror_fn(current) if mirror_fn else self._auto_mirror(current))
                 run.mirror_text = text
                 run.records.append(
                     StageRecord(stage, True, f"认知镜像：{text}", "0.3-I2")
@@ -268,16 +327,14 @@ class Router:
 
             elif stage is PipelineStage.COUNCIL:
                 # 建构者 / 质疑者 / 验证者三角视角（第 7 章 7-R3）
-                roles = self._council(current)
+                roles = council_fn(current) if council_fn else self._council(current)
                 current.extend(roles)
+                detail = "、".join(
+                    f"{r.payload.get('role', r.text)}×{len(r.payload.get('items', []))}"
+                    for r in roles[:3]
+                ) or "（无角色视角）"
                 run.records.append(
-                    StageRecord(
-                        stage, True,
-                        f"三角视角并行：建构者{len(roles[0].payload['items'])}项 / "
-                        f"质疑者{len(roles[1].payload['items'])}项 / "
-                        f"验证者{len(roles[2].payload['items'])}项",
-                        "7-R3",
-                    )
+                    StageRecord(stage, True, f"三角视角并行：{detail}", "7-R3")
                 )
 
             elif stage is PipelineStage.ADJUDICATE:
@@ -297,8 +354,6 @@ class Router:
                 )
 
             elif stage is PipelineStage.EMIT:
-                if hooks.get(stage):
-                    current = hooks[stage](current)
                 emitted = [f for f in current if not f.payload.get("internal_only")]
                 # 0.7-R3：低置信补标注
                 emitted = [f.mark_pending() if f.needs_pending_mark else f for f in emitted]

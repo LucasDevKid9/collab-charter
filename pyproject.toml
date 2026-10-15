@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "collab-charter"
-version = "3.2.0"
+version = "3.3.0"
 description = "用户协作宪章 v3.2 的 Agent 执行内核：把用户侧的协作规范变成可加载、可调用、可验证的运行层"
 readme = "README.md"
 requires-python = ">=3.9"

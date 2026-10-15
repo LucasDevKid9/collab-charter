@@ -59,9 +59,11 @@ def test_十四个工具都已注册(registry: ToolRegistry) -> None:
 
 
 def test_server_版本与内核一致(registry: ToolRegistry) -> None:
-    assert mcp_server.SERVER_VERSION == "3.2.0"
+    from collab_charter import __version__
+
+    assert mcp_server.SERVER_VERSION == __version__
     resp = _call(registry, "initialize")
-    assert resp["result"]["serverInfo"]["version"] == "3.2.0"
+    assert resp["result"]["serverInfo"]["version"] == __version__
 
 
 def test_每个工具都有描述与输入_schema(registry: ToolRegistry) -> None:
@@ -218,3 +220,72 @@ def test_条款不存在时返回错误文本(registry: ToolRegistry) -> None:
 def test_批量请求逐条回复(registry: ToolRegistry) -> None:
     for i, method in enumerate(["ping", "tools/list"], start=1):
         assert _call(registry, method, req_id=i)["id"] == i
+
+
+# -- 真实 MCP 客户端兼容性（协议补全）---------------------------------------
+def test_initialize_声明资源与提示词能力(registry: ToolRegistry) -> None:
+    """真实客户端（Claude Code/Cursor）在 initialize 后会做 resources/prompts
+    发现流程，服务端必须声明能力并提供空目录，否则客户端可能直接失败。"""
+    result = _call(registry, "initialize")["result"]
+    caps = result["capabilities"]
+    assert "resources" in caps
+    assert "prompts" in caps
+
+
+def test_协议版本协商_按客户端声明回显(registry: ToolRegistry) -> None:
+    resp = dispatch({
+        "jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {}},
+    }, registry)
+    assert resp is not None
+    assert resp["result"]["protocolVersion"] == "2025-06-18"
+    # 未知版本回退到服务端支持版本
+    resp2 = dispatch({
+        "jsonrpc": "2.0", "id": 2, "method": "initialize",
+        "params": {"protocolVersion": "9999-99-99"},
+    }, registry)
+    assert resp2["result"]["protocolVersion"] == PROTOCOL_VERSION
+
+
+def test_资源与提示词目录返回空列表(registry: ToolRegistry) -> None:
+    assert _call(registry, "resources/list")["result"] == {"resources": []}
+    assert _call(registry, "prompts/list")["result"] == {"prompts": []}
+
+
+def test_任意通知一律不回(registry: ToolRegistry) -> None:
+    for method in ("notifications/initialized", "notifications/cancelled",
+                   "notifications/progress", "notifications/roots/list_changed"):
+        assert dispatch({"jsonrpc": "2.0", "method": method, "params": {}}, registry) is None
+
+
+def test_真实MCP客户端_端到端冒烟() -> None:
+    """用官方 mcp SDK 的 ClientSession 走 stdio 连一次真服务端：
+    initialize → tools/list → tools/call，验证「拷到任何沙箱直接跑」在真实
+    客户端协议下成立。SDK 未安装时跳过（可选依赖）。"""
+    pytest.importorskip("mcp")
+    import asyncio
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
+    server = Path(mcp_server.__file__).resolve()
+
+    async def _run() -> list[str]:
+        params = StdioServerParameters(command=sys.executable, args=[str(server)])
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                init = await session.initialize()
+                tools = await session.list_tools()
+                assert init.serverInfo.name == SERVER_NAME
+                assert any(t.name == "charter_clause" for t in tools.tools)
+                result = await session.call_tool("charter_clause", {"clause_id": "0.5-R4"})
+                text = result.content[0].text if result.content else ""
+                return [init.serverInfo.name, str(len(tools.tools)), text]
+
+    out = asyncio.run(_run())
+    assert out[0] == SERVER_NAME
+    assert int(out[1]) == 14
+    assert "并列呈现" in out[2]

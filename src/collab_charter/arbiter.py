@@ -60,6 +60,12 @@ _DIM_RANK = {d: i + 1 for i, d in enumerate(
     [Dimension.SAFETY, Dimension.TRUTH, Dimension.USER_GOAL, Dimension.CONCISION, Dimension.FORMAT]
 )}
 
+#: 0.5 冲突裁决的评估顺序（SSOT 契约：必须与 charter.yaml 的 eval_order 一致）
+#: R5 先排除情感流 → R1 事实/置信 → R2 时效（稳定偏好/安全约束豁免）
+#: → R3 来源 → R4 同级同源并列。
+#: 该顺序被 Arbiter.__init__ 启动断言锁住，改宪章不改代码或改代码不改宪章都会立即报错。
+EVAL_ORDER: tuple[str, ...] = ("0.5-R5", "0.5-R1", "0.5-R2", "0.5-R3", "0.5-R4")
+
 
 @dataclass(frozen=True)
 class Conflict:
@@ -114,8 +120,19 @@ class Arbiter:
         # 用宪章顺序校正枚举 rank，保证「改宪章即改行为」
         self.charter = charter
         self._order = [str(item["id"]) for item in ranks]
+        self._validate_eval_order()
 
     # -- 0.4 优先级 -------------------------------------------------------
+    def _validate_eval_order(self) -> None:
+        """0.5 评估顺序必须与宪章 SSOT 一致——防止规则顺序悄悄漂移。"""
+        declared = self.charter.section("chapter_0_information_flow", "0.5_arbitration")
+        order = [str(x) for x in declared.get("eval_order", [])]
+        if order != list(EVAL_ORDER):
+            raise CharterError(
+                "0.5 冲突裁决评估顺序与宪章不一致：\n"
+                f"  宪章：{order}\n  代码：{list(EVAL_ORDER)}"
+            )
+
     def weigh(self, a: Dimension, b: Dimension) -> Dimension:
         """两维度冲突时返回胜出者；依据是宪章里声明的顺序。"""
         return a if a.outranks(b) else b
@@ -151,7 +168,7 @@ class Arbiter:
     ) -> Conflict:
         """裁决两条流的冲突，返回可追溯的 ``Conflict``。
 
-        规则优先级（与 0.5 的书写顺序一致，先命中先用）：
+        评估顺序（与 charter.yaml 0.5.eval_order 一致，SSOT 锁死）：
         R5 情感流不参与事实裁决 → R1 事实>推测、高置信>低置信
         → R2 新>旧（稳定偏好/安全约束豁免） → R3 用户显式>模型推测
         → R4 同级同源并列
@@ -186,17 +203,6 @@ class Arbiter:
                 f"高置信（{a.confidence.value} vs {b.confidence.value}）优先",
             )
 
-        # 0.5-R3：用户显式陈述 > 模型推测
-        if a.source is not b.source:
-            ua, ub = a.source is Source.USER_STATED, b.source is Source.USER_STATED
-            if ua != ub:
-                return Conflict(
-                    a.id, b.id, "来源",
-                    Verdict_.LEFT if ua else Verdict_.RIGHT,
-                    "0.5-R3",
-                    "用户显式陈述优先于模型推测",
-                )
-
         # 0.5-R2：新 > 旧，稳定偏好 / 安全约束豁免
         if a_recency != b_recency:
             older_is_a = a_recency < b_recency
@@ -215,6 +221,17 @@ class Arbiter:
                 Verdict_.RIGHT if older_is_a else Verdict_.LEFT,
                 "0.5-R2", "新信息优先于旧信息",
             )
+
+        # 0.5-R3：用户显式陈述 > 模型推测
+        if a.source is not b.source:
+            ua, ub = a.source is Source.USER_STATED, b.source is Source.USER_STATED
+            if ua != ub:
+                return Conflict(
+                    a.id, b.id, "来源",
+                    Verdict_.LEFT if ua else Verdict_.RIGHT,
+                    "0.5-R3",
+                    "用户显式陈述优先于模型推测",
+                )
 
         # 0.5-R4：同级同源 —— 并列呈现，不强行收敛
         return Conflict(

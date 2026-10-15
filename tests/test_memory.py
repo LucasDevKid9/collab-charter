@@ -81,6 +81,27 @@ def test_检索不到时返回空(memory: MemoryStore) -> None:
     assert memory.recall("完全无关的词") == []
 
 
+def test_语义检索能召回同义改写(memory: MemoryStore) -> None:
+    """semantic=True 时，「重构这个模块」能召回「帮我重构一下模块」这类同义改写，
+    而纯子串匹配漏检（这正是 0.6-O2 再激活的召回短板）。"""
+    memory.deposit(_mem("帮我重构一下这个登录模块"), "m.re", tags=["重构"])
+    # 纯子串匹配：漏检
+    assert memory.recall("把模块重构掉", semantic=False) == []
+    # 语义检索：命中（共享「模块」「重构」词元）
+    hits = memory.recall("把模块重构掉", semantic=True)
+    assert hits and hits[0].payload["memory_key"] == "m.re"
+
+
+def test_语义检索确定性(memory: MemoryStore) -> None:
+    """semantic=True 必须确定性：同输入 → 同排序（11.2-V1 的纪律扩展到记忆）。"""
+    memory.deposit(_mem("谷圈 晒谷 痛包 吧唧"), "g1")
+    memory.deposit(_mem("赛博朋克 霓虹 义体"), "g2")
+    r1 = [f.payload["memory_key"] for f in memory.recall("谷圈 痛包 吧唧", semantic=True)]
+    r2 = [f.payload["memory_key"] for f in memory.recall("谷圈 痛包 吧唧", semantic=True)]
+    assert r1 == r2
+    assert "g1" in r1
+
+
 # -- 0.6-O3 衰减与刷新 -----------------------------------------------------
 def test_长期稳定不衰减() -> None:
     assert HALF_LIFE[TTL.STABLE] is None

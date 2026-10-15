@@ -130,6 +130,8 @@ chapter_0_information_flow:
 
   0.5_arbitration:
     title: 冲突裁决规则
+    # SSOT 契约：compare 必须按下述顺序依次尝试，先命中先用；改此顺序即改行为。
+    eval_order: [0.5-R5, 0.5-R1, 0.5-R2, 0.5-R3, 0.5-R4]
     rules:
       - {id: 0.5-R1, statement: 事实流 > 推测流；高置信 > 低置信。}
       - {id: 0.5-R2, statement: 新信息 > 旧信息——除非旧信息是稳定偏好或安全约束。}

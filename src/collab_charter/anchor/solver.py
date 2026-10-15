@@ -90,6 +90,96 @@ _ALLOWED_NODE_TYPES = (
     ast.Call, ast.Name, ast.Load, ast.Constant,
 )
 
+#: BinOp / UnaryOp / Compare 各操作符 → 实际函数。
+#: 用 operator 模块而不是 Python 内置 eval：对 z3 对象与原生 int/bool 都成立。
+_OP_FUNCS = {
+    ast.Add: lambda a, b: a + b,
+    ast.Sub: lambda a, b: a - b,
+    ast.Mult: lambda a, b: a * b,
+    ast.Div: lambda a, b: a / b,
+    ast.Mod: lambda a, b: a % b,
+    ast.FloorDiv: lambda a, b: a // b,
+    ast.USub: lambda a: -a,
+    ast.UAdd: lambda a: +a,
+    ast.Not: lambda a: not a,
+}
+_CMP_FUNCS = {
+    ast.Eq: lambda a, b: a == b,
+    ast.NotEq: lambda a, b: a != b,
+    ast.Lt: lambda a, b: a < b,
+    ast.LtE: lambda a, b: a <= b,
+    ast.Gt: lambda a, b: a > b,
+    ast.GtE: lambda a, b: a >= b,
+}
+
+
+def _is_symbolic(v: Any) -> bool:
+    """是否为 z3 符号对象（未实例化的 BoolRef / ArithRef 等）。"""
+    return hasattr(v, "get_id") or type(v).__name__.endswith("Ref")
+
+
+def _ast_eval(node: ast.AST, env: dict) -> Any:
+    """纯 AST 解释器（12.1-A2）——不调用 eval/compile。
+
+    手工遍历白名单节点；任何不在白名单的节点都在前置校验中被拒绝，
+    因此这里无需再设逃逸防线。对 z3 表达式与原生 int/bool 统一求值。
+    """
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.Name):
+        return env[node.id]  # 前置校验保证 node.id 已被允许
+    if isinstance(node, ast.BoolOp):
+        vals = [_ast_eval(v, env) for v in node.values]
+        # 符号操作数（z3 BoolRef/ArithRef）用 z3 的 And/Or，不能用 Python all/any（会强制 bool）
+        symbolic = any(_is_symbolic(v) for v in vals)
+        if symbolic:
+            z = _require_z3()
+            if isinstance(node.op, ast.And):
+                return z.And(*vals)
+            if isinstance(node.op, ast.Or):
+                return z.Or(*vals)
+            raise AnchorError("不支持的布尔运算符")
+        if isinstance(node.op, ast.And):
+            return all(vals)
+        if isinstance(node.op, ast.Or):
+            return any(vals)
+        raise AnchorError("不支持的布尔运算符")
+    if isinstance(node, ast.UnaryOp):
+        operand = _ast_eval(node.operand, env)
+        # 符号操作数：Not 用 z3.Not，USub/UAdd 用 z3 算术（不可用 Python 一元运算）
+        if isinstance(node.op, ast.Not) and _is_symbolic(operand):
+            z = _require_z3()
+            return z.Not(operand)
+        fn = _OP_FUNCS.get(type(node.op))
+        if fn is None:
+            raise AnchorError(f"不支持的一元运算符: {type(node.op).__name__}")
+        return fn(operand)
+    if isinstance(node, ast.BinOp):
+        fn = _OP_FUNCS.get(type(node.op))
+        if fn is None:
+            raise AnchorError(f"不支持的二元运算符: {type(node.op).__name__}")
+        return fn(_ast_eval(node.left, env), _ast_eval(node.right, env))
+    if isinstance(node, ast.Compare):
+        left = _ast_eval(node.left, env)
+        results: list = []
+        for op, comp in zip(node.ops, node.comparators):
+            fn = _CMP_FUNCS.get(type(op))
+            if fn is None:
+                raise AnchorError(f"不支持的比较运算符: {type(op).__name__}")
+            right = _ast_eval(comp, env)
+            results.append(fn(left, right))
+            left = right
+        # 任一比较是符号结果 → 不强制 bool（z3 禁止 bool(BoolRef)）
+        if any(_is_symbolic(r) for r in results):
+            z = _require_z3()
+            return z.And(*results) if len(results) > 1 else results[0]
+        return all(results)
+    if isinstance(node, ast.Call):
+        fn = env[node.func.id]  # 前置校验保证是白名单函数
+        args = [_ast_eval(a, env) for a in node.args]
+        return fn(*args)
+    raise AnchorError(f"不支持的 AST 节点: {type(node).__name__}")
+
 
 def _allowed_z3_funcs() -> Dict[str, Any]:
     z = _require_z3()
@@ -106,6 +196,7 @@ def _safe_eval(expr: str, allowed: dict):
     节点类型白名单：凡不在白名单内的 AST 构造（Attribute/Subscript/
     Lambda/推导式/关键字参数等）一律拒绝，从结构上阻断逃逸——
     v1 只检查 ast.Name，``x.__class__...`` 可绕过直达任意 Python 对象。
+    本实现不依赖 eval/compile：白名单校验后用纯 AST 解释器求值。
     """
     z = _require_z3()
     expr = normalize_input(expr).strip()
@@ -139,10 +230,10 @@ def _safe_eval(expr: str, allowed: dict):
             if not isinstance(node.value, (int, bool)):
                 raise AnchorError(f"只允许整数/布尔常量: {expr!r}")
 
-    namespace = {"__builtins__": {}}
-    namespace.update(allowed)
-    namespace.update(funcs)
-    result = eval(compile(tree, "<constraints>", "eval"), namespace)  # noqa: S307 - 白名单已限死
+    env: dict = dict(allowed)
+    env.update(funcs)
+    env["__builtins__"] = {}
+    result = _ast_eval(tree.body, env)
     if callable(result):
         raise AnchorError(f"函数名未被调用（单独出现的函数名无意义）: {expr!r}")
     return result

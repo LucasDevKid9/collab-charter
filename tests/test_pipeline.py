@@ -76,6 +76,37 @@ def test_默认走全量(charter: Charter) -> None:
     assert r.fast_path is False
 
 
+# -- 0.9 自动复杂度判定（auto_guess 兜底）-----------------------------------
+@pytest.mark.parametrize("text,label", [
+    ("帮我设计一张海报", "创造性产出"),
+    ("写一篇推文", "创造性产出"),
+    ("先梳理流程再部署迁移", "多步计划"),
+    ("写代码实现这个功能", "多步计划"),
+    ("解析上传的本地pdf文件", "本地文件"),
+    ("帮我读一下这个文档", "本地文件"),
+])
+def test_auto_guess_从文本识别复杂度(charter: Charter, text: str, label: str) -> None:
+    """调用方未传复杂度标记时，内核用轻量规则从文本自动判定。"""
+    r = Router(charter).plan(level=TaskLevel.L1, user_text=text)
+    assert r.fast_path is False
+    assert label in r.reason
+
+
+def test_auto_guess_显式参数优先于猜测(charter: Charter) -> None:
+    """调用方显式传参时，以显式值为准，不叠加猜测。"""
+    # 显式说 L1 且文本含创作词，但显式 has_creative_output=False → 仍走快速
+    r = Router(charter).plan(
+        level=TaskLevel.L1, user_text="帮我设计个logo", has_creative_output=False,
+    )
+    assert r.fast_path is True, "显式 False 应覆盖文本猜测"
+
+
+def test_auto_guess_可关闭(charter: Charter) -> None:
+    """auto_guess=False 时完全依赖调用方打标。"""
+    r = Router(charter).plan(level=TaskLevel.L1, user_text="帮我设计个logo", auto_guess=False)
+    assert r.fast_path is True
+
+
 # -- 0.3-I3 不过闸即终止 ---------------------------------------------------
 def test_不过闸时管线终止(charter: Charter) -> None:
     router = Router(charter)
@@ -277,3 +308,71 @@ def test_元数据默认不展示(session: Session) -> None:
     session.handle("随便聊聊")
     meta = session.debug_meta()
     assert meta and "confidence" in meta[0]
+
+
+# -- 认知执行注入（stage_hooks 全站化 / mirror_fn / council_fn）--------------
+def test_stage_hooks_对非EMIT站也生效(charter: Charter, session: Session) -> None:
+    """stage_hooks 必须对全部站点生效（此前只对 EMIT 生效是半成品能力）。"""
+    touched: list[str] = []
+
+    def intent_hook(flows):
+        touched.append("intent")
+        return flows
+
+    out = session.handle(
+        "帮我重构这个模块",
+        stage_hooks={PipelineStage.INTENT: intent_hook},
+    )
+    assert "intent" in touched, "INTENT 站 hook 应被触发"
+    assert out.run.completed
+
+
+def test_mirror_fn_注入真实认知镜像(charter: Charter, session: Session) -> None:
+    """传入 mirror_fn 时，认知镜像站产出真实模型回调内容，而非模板复述。"""
+    out = session.handle(
+        "帮我重构这个模块",
+        mirror_fn=lambda flows: "镜像[模型]：你的隐含诉求是低风险重构",
+    )
+    assert "镜像[模型]" in out.run.mirror_text
+    assert "我理解你要的是" not in out.run.mirror_text, "有真实回调时不应回退模板"
+
+
+def test_council_fn_注入真实三角视角(charter: Charter, session: Session) -> None:
+    """传入 council_fn 时，三角协作站产出真实角色内容（非模板占位）。"""
+    def real_council(flows):
+        from collab_charter.flows import Flow, FlowLayer, FlowType, Source, Direction, Confidence, TTL
+
+        return [
+            Flow(text="建构者[模型]：候选方案A",
+                 layer=FlowLayer.INTERNAL, type=FlowType.DECISION,
+                 source=Source.MODEL_PRIOR, direction=Direction.INTERNAL,
+                 ttl=TTL.SESSION, confidence=Confidence.MEDIUM,
+                 payload={"role": "建构者[模型]", "items": ["方案A"], "internal_only": True}),
+        ]
+
+    out = session.handle("帮我重构", council_fn=real_council)
+    council = next(r for r in out.run.records if r.stage is PipelineStage.COUNCIL)
+    assert "建构者[模型]" in council.detail
+
+
+def test_auto_deposit_使回流自检通过(charter: Charter, session: Session) -> None:
+    """auto_deposit_keys 命中时自动沉淀，0.8-C4 回流自检通过（无需手动 reflow）。"""
+    # 未触发 auto_deposit 的对比：C4 必失败
+    out0 = session.handle("再聊一句", constraints=[])
+    c4 = next(i for i in out0.selfcheck.items if i.id == "0.8-C4")
+    assert c4.passed is False, "未触发 auto_deposit / reflow 时 C4 应失败（安全闸）"
+
+    # 命中 auto_deposit（消息文本含白名单 key）→ 本次 handle 的 C4 即通过
+    out1 = session.handle(
+        "记录一下：先过闸再断言",
+        constraints=[],
+        auto_deposit_keys=("先过闸",),
+    )
+    c4a = next(i for i in out1.selfcheck.items if i.id == "0.8-C4")
+    assert c4a.passed is True, out1.explain_failures()
+    assert len(session.memory) >= 1, "白名单流应被自动沉淀"
+
+    # 沉淀后，后续 handle 的 C4 持续通过
+    out2 = session.handle("再确认一次", constraints=[])
+    c4b = next(i for i in out2.selfcheck.items if i.id == "0.8-C4")
+    assert c4b.passed is True, out2.explain_failures()

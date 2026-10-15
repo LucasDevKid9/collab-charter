@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from collab_charter import Charter
-from collab_charter.arbiter import Arbiter, Dimension, Verdict_
+from collab_charter.arbiter import Arbiter, Dimension, EVAL_ORDER, Verdict_
 from collab_charter.flows import (
     Confidence,
     Direction,
@@ -15,6 +15,7 @@ from collab_charter.flows import (
     Source,
     TTL,
 )
+from collab_charter.charter_loader import CharterError
 
 
 def _f(text: str, ftype: FlowType, conf: Confidence = Confidence.HIGH, src: Source = Source.USER_STATED) -> Flow:
@@ -162,3 +163,34 @@ def test_空输入不报错(charter: Charter) -> None:
     r = a.arbitrate([])
     assert r.survivors == []
     assert r.conflicts == []
+
+
+def test_评估顺序与宪章SSOT一致(charter: Charter) -> None:
+    """0.5 评估顺序必须被 Arbiter 启动断言锁住（防漂移）。"""
+    a = Arbiter(charter)  # 顺序一致时应正常构建
+    declared = charter.section("chapter_0_information_flow", "0.5_arbitration")
+    assert [str(x) for x in declared["eval_order"]] == list(EVAL_ORDER)
+
+
+def test_评估顺序漂移时立即报错(charter: Charter) -> None:
+    """改宪章不改代码，或改代码不改宪章，都要立即抛错——绝不静默跑偏。"""
+    # 用一个伪造的 charter 视图：eval_order 与代码不一致
+    class _Bad(Charter):
+        def section(self, chapter_key, section_key):
+            if section_key == "0.5_arbitration":
+                return {"eval_order": ["0.5-R5", "0.5-R1", "0.5-R4", "0.5-R2", "0.5-R3"]}
+            return super().section(chapter_key, section_key)
+
+    bad = _Bad(raw=charter.raw, clauses=charter.clauses, source=charter.source)
+    with pytest.raises(CharterError):
+        Arbiter(bad)
+
+
+def test_新用户陈述优先于旧模型事实(charter: Charter) -> None:
+    """R2 先于 R3：新用户陈述 vs 旧模型事实 → 新信息优先（除非豁免）。"""
+    a = Arbiter(charter)
+    old_model = _f("旧模型事实", FlowType.FACT, Confidence.HIGH, Source.MODEL_GUESS)
+    new_user = _f("新用户陈述", FlowType.FACT, Confidence.HIGH, Source.USER_STATED)
+    c = a.compare(old_model, new_user, a_recency=1.0, b_recency=2.0)
+    assert c.verdict is Verdict_.RIGHT
+    assert c.clause == "0.5-R2"

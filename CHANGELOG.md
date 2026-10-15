@@ -3,6 +3,49 @@
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 版本号与宪章版本对齐：内核 `3.2.x` 对应宪章 `v3.2`。
 
+## [3.3.0] — 2026-10
+
+从「高度可信的审计框架」升级为「可被 Agent 依赖的执行层」：
+补齐全部站点执行注入、仲裁零漂移、记忆语义召回、求解器零 eval 纵深防御。
+
+### 仲裁层（0.5）
+- `arbiter.py` —— 冲突裁决评估顺序 SSOT 化：`charter.yaml` 新增 `0.5_arbitration.eval_order`
+  （R5→R1→R2→R3→R4），`Arbiter.__init__` 启动断言校验代码实现与宪章一致，
+  改宪章不改代码、或改代码不改宪章都会立即报错（堵住 R2/R3 顺序漂移）
+- 新增测试：`test_评估顺序与宪章SSOT一致` / `test_评估顺序漂移时立即报错` /
+  `test_新用户陈述优先于旧模型事实`
+
+### 执行层（0.3 / 0.7）
+- `router.py` —— `stage_hooks` 从「仅 EMIT 生效」改为**全 8 站统一生效**；
+  新增 `mirror_fn` / `council_fn` 认知执行注入点（真实 LLM 回调替代模板，
+  无回调回退零依赖模板）；COUNCIL 站记录对任意角色数鲁棒
+- `router.py` —— `plan()` 新增 `auto_guess` 自动任务复杂度判定：复杂度标记
+  改为 `bool | None` 语义（None=未表态→文本启发式补位，显式 True/False 优先），
+  调用方不打标时内核也能从 user_text 识别创造性产出/多步计划/本地文件
+- `session.py` —— `handle()` 新增 `auto_deposit_keys` 白名单自动沉淀，
+  使 0.8-C4 回流自检无需手动 `reflow()` 即可通过（安全闸语义不变）；
+  复杂度标记透传 None 语义
+- README 更新 Python 示例，明确 C4 的两种通过方式与认知注入接线点
+
+### 记忆层（0.6）
+- `memory.py` —— `recall()` 新增 `semantic=True` 词元重叠语义检索
+  （复用 lexicon 确定性词元策略），同义改写可召回；子串匹配作 fallback
+
+### 锚定层（12.1）
+- `anchor/solver.py` —— `_safe_eval` 从 `eval(compile(...))` 改为**纯 AST 解释器**
+  （手工遍历白名单节点，符号操作数走 z3 And/Or/Not/Compare），彻底消灭 eval/compile
+- 新增测试：`test_表达式求值_零eval_零compile`
+
+### 接口层（MCP）
+- `interfaces/mcp_server.py` —— 协议补全：`initialize` 声明 resources/prompts 能力、
+  协议版本按客户端声明回显协商、`resources/list` / `prompts/list` 返回空目录、
+  所有 `notifications/*` 通知一律不回（含 cancelled/progress）
+- 新增测试：真实 `mcp` SDK `ClientSession` 走 stdio 端到端冒烟
+  （initialize → tools/list → tools/call，SDK 缺失时跳过）
+
+### 验证
+- 测试 368 → 391 项，全绿；`verify` 全过
+
 ## [3.2.0] — 2026-10
 
 宪章 v3.2：新增第十一章「知识库与语义场」与第十二章「符号锚定」；

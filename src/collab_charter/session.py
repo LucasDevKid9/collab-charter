@@ -175,13 +175,25 @@ class Session:
         message: str,
         *,
         shortcuts: Iterable[str] = (),
-        has_creative_output: bool = False,
-        has_multi_step_plan: bool = False,
-        has_local_files: bool = False,
+        has_creative_output: bool | None = None,
+        has_multi_step_plan: bool | None = None,
+        has_local_files: bool | None = None,
         constraints: Sequence[str] = (),
         extra_flows: Sequence[Flow] = (),
+        stage_hooks: dict[Any, Callable[[list[Flow]], list[Flow]]] | None = None,
+        mirror_fn: Callable[[list[Flow]], str] | None = None,
+        council_fn: Callable[[list[Flow]], list[Flow]] | None = None,
+        auto_deposit_keys: Sequence[str] = (),
     ) -> SessionOutcome:
-        """处理一条用户消息，跑完路由管线并返回可交付的结果对象。"""
+        """处理一条用户消息，跑完路由管线并返回可交付的结果对象。
+
+        复杂度标记传 ``None``（默认）时由 Router 的 ``auto_guess`` 从文本
+        自动判定；显式传 ``True``/``False`` 则以其为准。
+
+        ``stage_hooks`` / ``mirror_fn`` / ``council_fn``：透传给 Router 的认知
+        执行注入点（真实 LLM 回调或平台工具）。``auto_deposit_keys``：白名单
+        流 key——命中且方向为内部/记忆的流会自动沉淀，使 0.8-C4 回流自检通过。
+        """
         detected = [w for w in SHORTCUT_BEHAVIOR if w in message]
         said = list(dict.fromkeys([*shortcuts, *detected]))
 
@@ -202,6 +214,25 @@ class Session:
         skip_mirror_note = "快速" in said
         mirror_text = "" if skip_mirror_note else ""
 
+        # auto-deposit（0.3 第 8 站）：白名单流自动沉淀 → 使 C4 回流自检通过。
+        # 必须在 execute 之前完成，否则本次 handle 的自检仍会看到"未回流"。
+        if auto_deposit_keys:
+            keys = set(auto_deposit_keys)
+            deposited = 0
+            for f in self._flows:
+                if f.destination is Destination.TOOL_CALL:
+                    continue
+                mem_key = str(f.payload.get("memory_key", ""))
+                if mem_key and mem_key in keys:
+                    self.memory.deposit(f)
+                    deposited += 1
+                elif any(k in f.text for k in keys):
+                    self.memory.deposit(f)
+                    deposited += 1
+            if deposited:
+                self._memory_updated = True
+                self.memory.decay()
+
         run, emitted = self.router.execute(
             list(self._flows),
             route=route,
@@ -209,6 +240,9 @@ class Session:
             constraints=constraints,
             memory_updated=self._memory_updated,
             agent_cannot=self.agent_cannot,
+            stage_hooks=stage_hooks,
+            mirror_fn=mirror_fn,
+            council_fn=council_fn,
         )
         self._emitted_ids = {f.id for f in emitted}
 

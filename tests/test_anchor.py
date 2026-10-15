@@ -168,3 +168,19 @@ def test_z3_缺失时报错清晰(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(solver, "z3", None)
     with pytest.raises(AnchorUnavailableError, match="z3-solver"):
         solver.solve(DECLARE, "x+y>=1", "做:x+y==2")
+
+
+# -- 12.1-A2 纵深防御：彻底不依赖 eval/compile ------------------------------
+def test_表达式求值_零eval_零compile() -> None:
+    """12.1-A2 的纵深防御：表达式求值必须走纯 AST 解释器，
+    绝不能退化为 eval/compile（白名单之外还有纵深防线）。"""
+    import inspect
+    import collab_charter.anchor.solver as solver
+
+    src = inspect.getsource(solver)
+    # _safe_eval 与 _ast_eval 的实现体：不得出现内置 eval 或 compile 调用
+    safe_src = inspect.getsource(solver._safe_eval) + inspect.getsource(solver._ast_eval)
+    assert "eval(compile(" not in safe_src
+    assert " eval(" not in safe_src.replace("_safe_eval", "_x").replace("_ast_eval", "_x")
+    # 允许出现的只有 AST 解析的 mode="eval" 与 z3 模型 m.eval，二者都不是 Python 求值
+    assert "ast.parse" in inspect.getsource(solver._safe_eval)

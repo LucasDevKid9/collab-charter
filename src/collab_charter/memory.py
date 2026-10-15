@@ -34,6 +34,51 @@ HALF_LIFE: dict[TTL, float | None] = {
 #: 置信度阶梯，衰减时逐级下降
 _CONF_LADDER = [Confidence.HIGH, Confidence.MEDIUM, Confidence.LOW]
 
+_CJK = None  # 惰性初始化
+
+
+def _semantic_tokens(text: str) -> set[str]:
+    """记忆语义检索的词元化：英文按词，CJK 取单字 + 相邻二元组。
+
+    复用 lexicon.vectors 的确定性词元策略（无随机、无外部状态），
+    使记忆检索对同义改写（如「记下重构方案」vs「重构」）更鲁棒。
+    """
+    global _CJK
+    if _CJK is None:
+        import re
+
+        _CJK = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]")
+    out: set[str] = set()
+    buf: list[str] = []
+    cjk_buf: list[str] = []
+
+    def flush_ascii() -> None:
+        if buf:
+            out.add("".join(buf).lower())
+            buf.clear()
+
+    def flush_cjk() -> None:
+        if cjk_buf:
+            for ch in cjk_buf:
+                out.add(ch)
+            for i in range(len(cjk_buf) - 1):
+                out.add(cjk_buf[i] + cjk_buf[i + 1])
+            cjk_buf.clear()
+
+    for ch in str(text or ""):
+        if _CJK.match(ch):
+            flush_ascii()
+            cjk_buf.append(ch)
+        elif ch.isascii() and ch.isalnum():
+            flush_cjk()
+            buf.append(ch)
+        else:
+            flush_ascii()
+            flush_cjk()
+    flush_ascii()
+    flush_cjk()
+    return out
+
 
 @dataclass
 class MemoryNode:
@@ -165,9 +210,22 @@ class MemoryStore:
         return node
 
     # -- 0.6-O2 再激活 ----------------------------------------------------
-    def recall(self, query: str = "", *, limit: int = 5, tags: Iterable[str] = ()) -> list[Flow]:
-        """按关键词/标签检索记忆，还原为流。空的 ``query`` 返回最近更新的若干条。"""
+    def recall(
+        self,
+        query: str = "",
+        *,
+        limit: int = 5,
+        tags: Iterable[str] = (),
+        semantic: bool = False,
+    ) -> list[Flow]:
+        """按关键词/标签检索记忆，还原为流。空的 ``query`` 返回最近更新的若干条。
+
+        ``semantic=True`` 时启用词元重叠语义检索（复用 lexicon 向量词元化，
+        对同义改写更鲁棒）：对 query 与各记忆节点的 text/tags 做 CJK 二元组
+        与英文词元重叠打分，子串命中仍给额外权重。确定性：同输入 → 同排序。
+        """
         tag_set = {t for t in tags}
+        query_tokens = _semantic_tokens(query) if (semantic and query) else None
         scored: list[tuple[float, MemoryNode]] = []
         for node in self._backend.all():
             score = 0.0
@@ -179,6 +237,13 @@ class MemoryStore:
                 score += 1.5 * len(tag_set & set(node.tags))
                 if not (tag_set & set(node.tags)) and not query:
                     continue
+            if query_tokens is not None:
+                # 语义分量：query 词元与节点文本词元的交集比例
+                node_tokens = _semantic_tokens(node.text)
+                if node_tokens:
+                    inter = len(query_tokens & node_tokens)
+                    if inter:
+                        score += inter * 1.2 / max(1.0, len(query_tokens))
             if not query and not tag_set:
                 score = 0.1
             if score > 0:

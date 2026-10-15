@@ -82,6 +82,35 @@ print(out.trace)        # 逐站轨迹（「讲思路」时展开）
 print(out.explain_failures())  # 自检没通过时说清楚哪里没通过
 ```
 
+**回流自检（0.8-C4）说明**：全量路径下，`handle()` 默认不自动沉淀记忆，
+因此 0.8-C4（反馈是否已回流）会显示未通过——这是**有意的安全闸**，防止
+未经确认就把内容写入长期记忆。两种让它通过的方式：
+
+```python
+# 方式 A：显式回流（沉淀整个会话的关键流）
+session.reflow()
+out = session.handle("再确认一次", constraints=[])
+
+# 方式 B：白名单自动沉淀（命中消息文本或 memory_key 的流自动入库，本次即通过）
+out = session.handle("记录一下：先过闸再断言", auto_deposit_keys=("先过闸",))
+assert out.selfcheck.passed
+```
+
+**认知执行注入（Agent 平台接线点）**：`stage_hooks` 对**全部 8 个站点**统一生效，
+`mirror_fn` / `council_fn` 让你用真实 LLM 回调替代认知镜像与三角角色协作的
+确定性模板（无回调时回退模板，保持零依赖）：
+
+```python
+from collab_charter.router import PipelineStage
+
+out = session.handle(
+    "帮我重构这个模块",
+    mirror_fn=lambda flows: "镜像：你的隐含诉求是低风险重构",
+    council_fn=lambda flows: real_llm_council(flows),   # 真实三角视角
+    stage_hooks={PipelineStage.INTENT: tag_flows},      # 任意站点拦截
+)
+```
+
 ### 3. MCP（推荐给 Agent 平台）
 
 ```json
@@ -95,7 +124,9 @@ print(out.explain_failures())  # 自检没通过时说清楚哪里没通过
 }
 ```
 
-零依赖（只用标准库实现 JSON-RPC over stdio），拷到任何沙箱都能直接跑。
+零依赖（只用标准库实现 JSON-RPC over stdio），拷到任何沙箱都能直接跑，
+并已通过官方 `mcp` SDK 的 `ClientSession` 端到端冒烟（initialize →
+tools/list → tools/call），可在 Claude Code / Cursor 等真实客户端下握手。
 **14 个工具**：条款查询 / 通览 / 接收自检 / 路由决策 / 管线执行 / 冲突裁决 /
 安全闸门 / 提示词诊断 / 记忆沉淀 / 记忆检索 / 符号锚定求解 / 知识库检索 /
 语义场深挖 / 潜空间语义场。
