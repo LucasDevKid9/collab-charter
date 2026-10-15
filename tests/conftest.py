@@ -45,4 +45,6 @@ def memory() -> MemoryStore:
 
 @pytest.fixture
 def session(charter: Charter, memory: MemoryStore) -> Session:
-    return Session(charter, memory=memory)
+    # 共享 fixture 默认关闭审计账本，避免测试污染仓库根 audit/ 目录；
+    # 需要真实账本的测试自行用 AuditLedger(tmp_path) 创建。
+    return Session(charter, memory=memory, audit=False)

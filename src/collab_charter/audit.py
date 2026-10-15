@@ -67,7 +67,8 @@ class AuditLedger:
     """append-only 审计账本（JSONL）。"""
 
     def __init__(self, path: str | Path | None = None) -> None:
-        self.path = Path(path) if path else Path("audit")
+        # 未显式指定时用用户缓存目录（不入仓库、不污染 CWD）；显式指定则用给定路径
+        self.path = Path(path) if path else _default_audit_dir()
         self.path.mkdir(parents=True, exist_ok=True)
         # 目录模式：每会话一个文件 <audit>/<session_id>.jsonl
         self._next_seq = 0
@@ -167,8 +168,23 @@ class AuditLedger:
         return sum(len(self.read(s)) for s in self.all_sessions())
 
 
-# 便捷：默认账本（供 CLI 使用）
+# 便捷：默认账本（供 CLI / Session / MCP 使用）
 _default_ledger: AuditLedger | None = None
+
+
+def _default_audit_dir() -> Path:
+    """默认审计目录：用户缓存（不入仓库、不污染 CWD）。
+
+    用``XDG_CACHE_HOME``或``~/.cache/collab_charter/audit``，保证：
+    * 生产运行时账本落在稳定的用户数据目录，可持久化；
+    * 不把 audit/ 写进任何项目工作树（避免污染仓库与测试）。
+    """
+    import os
+
+    base = os.environ.get("XDG_CACHE_HOME") or os.path.join(
+        os.path.expanduser("~"), ".cache"
+    )
+    return Path(base) / "collab_charter" / "audit"
 
 
 def default_ledger(path: str | Path | None = None) -> AuditLedger:
@@ -176,5 +192,5 @@ def default_ledger(path: str | Path | None = None) -> AuditLedger:
     if path is not None:
         return AuditLedger(path)
     if _default_ledger is None:
-        _default_ledger = AuditLedger()
+        _default_ledger = AuditLedger(_default_audit_dir())
     return _default_ledger

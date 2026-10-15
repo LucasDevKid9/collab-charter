@@ -97,6 +97,12 @@ def _build_parser() -> argparse.ArgumentParser:
     prp.add_argument("--json", action="store_true", help="输出机器可读 JSON")
     prp.add_argument("--audit-dir", default="", help="审计目录（默认 ./audit）")
     prp.add_argument("--sessions", action="store_true", help="列出全部会话")
+
+    pp = sub.add_parser("policy", help="宪章编译为策略IR + 差分（治理内核·P2-10 轻量版）")
+    pp.add_argument("--json", action="store_true", help="输出机器可读 JSON")
+    pp.add_argument("--risk", help="只看某风险档：low/medium/high/critical")
+    pp.add_argument("--summary", action="store_true", help="只输出风险档概览")
+    pp.add_argument("--diff", help="与另一份 charter.yaml 差分")
     return p
 
 
@@ -445,6 +451,53 @@ def cmd_replay(charter: Charter, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_policy(charter: Charter, args: argparse.Namespace) -> int:
+    """把宪章编译为轻量 Policy IR；支持风险档概览与宪章差分。"""
+    from .policy_ir import compile_charter
+
+    ir = compile_charter(charter)
+
+    if args.diff:
+        try:
+            other = Charter.load(args.diff)
+        except CharterError as exc:
+            print(f"加载对照宪章失败：{exc}", file=sys.stderr)
+            return 2
+        diff = ir.diff(compile_charter(other))
+        if args.json:
+            import json as _json
+
+            print(_json.dumps(diff, ensure_ascii=False, indent=2))
+            return 0
+        print(f"宪章差分（{charter.charter_id} → {other.charter_id}）：")
+        print(f"  新增 {diff['counts']['added']} · 变更 {diff['counts']['changed']} · 删除 {diff['counts']['removed']}")
+        if diff["added"]:
+            print("  新增：" + ", ".join(diff["added"]))
+        if diff["changed"]:
+            print("  变更：" + ", ".join(diff["changed"]))
+        if diff["removed"]:
+            print("  删除：" + ", ".join(diff["removed"]))
+        print("  受影响章节：" + ", ".join(diff["affected_chapters"]))
+        return 0
+
+    if args.json:
+        print(ir.to_json())
+        return 0
+
+    if args.summary:
+        print(f"宪章 {charter.charter_id} v{charter.version} · 策略IR {len(ir.rules)} 条")
+        for lvl, n in ir.risk_summary().items():
+            print(f"  {lvl:<9} {n}")
+        return 0
+
+    print(f"宪章 {charter.charter_id} v{charter.version} · 策略IR {len(ir.rules)} 条")
+    print("（按优先级排序，越靠前越优先）\n")
+    for r in ir.sorted():
+        print(ir.format_rule(r))
+        print()
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -467,6 +520,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "field": lambda a: cmd_field(charter, a),
         "anchor": lambda a: cmd_anchor(a),
         "replay": lambda a: cmd_replay(charter, a),
+        "policy": lambda a: cmd_policy(charter, a),
     }
     return table[args.cmd](args)
 

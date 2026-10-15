@@ -5,8 +5,9 @@
 
 ## [3.4.0] — 工作区（治理内核，待发版）
 
-从「能拦截」升级为「能解释、能复盘、能回放」——落地治理内核第一梯队：
-DecisionRecord + AuditLedger + Replay。
+从「能拦截」升级为「能解释、能复盘、能回放」——落地治理内核。
+第一梯队（DecisionRecord + AuditLedger + Replay）与第二梯队
+（记忆 Provenance + 工具消毒/污点 + Policy IR 轻量版）。
 
 ### 治理内核
 - `governance.py`（新增）—— `DecisionRecord`：把闸门裁决 / 仲裁冲突 / 管线拦截
@@ -28,8 +29,29 @@ DecisionRecord + AuditLedger + Replay。
 - 新增测试：`tests/test_governance.py`（14 项），覆盖三路记录、序列化往返、
   账本 append-only / seq 递增 / 决策提取 / Replay CLI 四模式
 
+### 记忆卫生（第二梯队·P1-6）
+- `memory.py` —— `MemoryNode` 新增 `Provenance` 来源凭证（source_type /
+  source_id / observed_at / confirmed_by / inference_confidence）；`deposit`
+  从流推导来源，`correct` 标记用户纠正；新增 `provenance_summary()` 人可读摘要
+- `memory.py` —— 新增 `conflict_resolve()` 记忆冲突解决器：单次任务覆盖保留旧记忆
+  （apply_current_task_override），长期偏好变化覆盖旧记忆（supersede）
+
+### 工具消毒与污点（第二梯队·P1-8）
+- `sanitize.py`（新增）—— 工具/外部内容消毒：清除提示词注入、脱敏密钥与 PII、
+  超长截断，并打污点标签（untrusted_*/pii/secret）；`default_taint_for_source()`
+  按来源给默认污点
+- `session.py` —— `call_tool()` 结果先过 `sanitize`，污点与消毒结果写入 payload，
+  供内核判断能否提权 / 是否需要策略复核
+
+### 策略中间表示（第二梯队·P2-10 轻量版）
+- `policy_ir.py`（新增）—— `PolicyIR`：把宪章编译为轻量策略 IR（policy_id /
+  章节 / kind / 风险档 / 优先级 / 触发场景）；支持风险档概览、单条查询、
+  `diff()` 宪章差分（改了什么、影响哪些章节）；克制实现，不做全套 bundle
+- `cli.py` —— 新增 `policy` 子命令：`--summary` 风险概览、`--json` 导出、
+  `--risk` 过滤、`--diff` 宪章差分
+
 ### 验证
-- 测试 391 → **405** 全绿；`cli verify` 三契约 + 结构全过
+- 测试 391 → 405（第一梯队）→ **422**（第二梯队）全绿；`cli verify` 三契约 + 结构全过
 
 ## [3.3.0] — 2026-10
 

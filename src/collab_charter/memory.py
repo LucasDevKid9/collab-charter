@@ -81,6 +81,75 @@ def _semantic_tokens(text: str) -> set[str]:
 
 
 @dataclass
+class Provenance:
+    """记忆来源凭证（最终优化·第二梯队·P1-6）。
+
+    对齐「记忆不是真相，记忆只是证据」原则：每条记忆必须能回答
+    来源类型、来源 id、何时观察、谁确认、推断置信度。没有 provenance
+    的记忆不能进入长期召回。
+    """
+
+    source_type: str = "user_explicit"   # user_explicit/user_implicit/agent_inference/tool_result/document/policy/other_agent/hallucination_suspect
+    source_id: str = ""                  # msg-123 / episode-456 / tool:web_fetch 等
+    observed_at: float = field(default_factory=time.time)
+    confirmed_by: str = ""               # user / tool / agent / charter
+    inference_confidence: float = 1.0   # 0–1，推断类来源的置信度
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_type": self.source_type,
+            "source_id": self.source_id,
+            "observed_at": self.observed_at,
+            "confirmed_by": self.confirmed_by,
+            "inference_confidence": self.inference_confidence,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any] | None) -> "Provenance":
+        d = d or {}
+        return cls(
+            source_type=d.get("source_type", "user_explicit"),
+            source_id=d.get("source_id", ""),
+            observed_at=float(d.get("observed_at", time.time())),
+            confirmed_by=d.get("confirmed_by", ""),
+            inference_confidence=float(d.get("inference_confidence", 1.0)),
+        )
+
+
+def _source_type_from_flow(flow: Flow) -> str:
+    """从流的 Source 推导来源类型。"""
+    from .flows import Source as S
+
+    if flow.source is S.USER_STATED:
+        return "user_explicit"
+    if flow.source is S.FILE_EVIDENCE:
+        return "document"
+    if flow.source is S.RETRIEVED:
+        return "tool_result"
+    if flow.source is S.MODEL_PRIOR:
+        return "agent_inference"
+    if flow.source is S.MODEL_GUESS:
+        return "agent_inference"
+    return "other_agent"
+
+
+def _confirmed_by(flow: Flow) -> str:
+    from .flows import Source as S
+
+    if flow.source is S.USER_STATED:
+        return "user"
+    if flow.source is S.RETRIEVED or flow.source is S.FILE_EVIDENCE:
+        return "tool"
+    return "agent"
+
+
+def _inference_confidence(flow: Flow) -> float:
+    from .flows import Confidence as C
+
+    return {"高": 1.0, "中": 0.7, "低": 0.35}.get(flow.confidence.value, 1.0)
+
+
+@dataclass
 class MemoryNode:
     """一条沉淀下来的记忆。"""
 
@@ -95,12 +164,14 @@ class MemoryNode:
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
     corrections: list[dict[str, Any]] = field(default_factory=list)
+    provenance: Provenance = field(default_factory=Provenance)
 
     # -- 序列化 -----------------------------------------------------------
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         for k in ("confidence", "ttl", "sensitivity", "source"):
             d[k] = getattr(self, k).value
+        d["provenance"] = self.provenance.to_dict()
         return d
 
     @classmethod
@@ -110,6 +181,7 @@ class MemoryNode:
         d["ttl"] = TTL(d.get("ttl", TTL.STABLE.value))
         d["sensitivity"] = Sensitivity(d.get("sensitivity", Sensitivity.PUBLIC.value))
         d["source"] = Source(d.get("source", Source.USER_STATED.value))
+        d["provenance"] = Provenance.from_dict(d.get("provenance"))
         return cls(**d)
 
     def to_flow(self, *, origin: str = "recall") -> Flow:
@@ -141,6 +213,22 @@ class MemoryNode:
             return self.confidence
         idx = _CONF_LADDER.index(self.confidence)
         return _CONF_LADDER[min(len(_CONF_LADDER) - 1, idx + steps)]
+
+    def provenance_summary(self) -> str:
+        """人可读的来源凭证摘要（供 why / replay / 诊断）。"""
+        src_zh = {
+            "user_explicit": "用户明说",
+            "user_implicit": "用户行为推断",
+            "agent_inference": "模型推断",
+            "tool_result": "工具结果",
+            "document": "文档",
+            "policy": "宪章",
+            "other_agent": "其他Agent",
+            "hallucination_suspect": "可疑幻觉",
+        }.get(self.provenance.source_type, self.provenance.source_type)
+        conf = f"{self.provenance.inference_confidence:.2f}" if self.provenance.inference_confidence < 1.0 else "1.00"
+        sid = f"#{self.provenance.source_id}" if self.provenance.source_id else ""
+        return f"{src_zh}{sid}·确认方={self.provenance.confirmed_by or '—'}·推断置信={conf}"
 
 
 class MemoryBackend(Protocol):
@@ -191,6 +279,14 @@ class MemoryStore:
             key = f"{flow.layer.value}:{flow.id}"
         key = key or f"{flow.layer.value}:{flow.id}"
         existing = self._backend.get(key)
+        # 记忆 Provenance：从流推导来源类型/确认方/推断置信度
+        prov = Provenance(
+            source_type=_source_type_from_flow(flow),
+            source_id=str(flow.payload.get("source_id", "") or flow.id),
+            observed_at=time.time(),
+            confirmed_by=_confirmed_by(flow),
+            inference_confidence=_inference_confidence(flow),
+        )
         node = MemoryNode(
             key=key,
             text=flow.text,
@@ -203,6 +299,7 @@ class MemoryStore:
             created_at=existing.created_at if existing else time.time(),
             updated_at=time.time(),
             corrections=existing.corrections if existing else [],
+            provenance=existing.provenance if existing else prov,
         )
         self._backend.upsert(node)
         self.last_deposit_at = node.updated_at
@@ -288,10 +385,85 @@ class MemoryStore:
         node.text = new_text
         node.confidence = Confidence.HIGH  # 用户纠正视为高置信
         node.source = Source.USER_STATED
+        node.provenance.source_type = "user_explicit"
+        node.provenance.confirmed_by = "user"
+        node.provenance.source_id = f"correction:{time.time():.0f}"
+        node.provenance.inference_confidence = 1.0
         node.updated_at = time.time()
         self._backend.upsert(node)
         self.save()
         return node
+
+    # -- 记忆冲突解决器（P1-6，最终优化·第二梯队） -----------------------
+    def conflict_resolve(
+        self,
+        key: str,
+        new_text: str,
+        *,
+        new_confidence: Confidence = Confidence.HIGH,
+        by: str = "用户",
+        scope: str = "task",          # task=单次任务覆盖 / preference=长期偏好变化
+    ) -> dict[str, Any]:
+        """新旧记忆冲突时，不简单覆盖，而是记录冲突类型并决策保留方式。
+
+        对齐蓝图「记忆冲突解决器」：
+          - 判断是长期偏好变化还是单次任务覆盖
+          - 长期偏好变化 → 覆盖旧记忆（记录 supersede）
+          - 单次任务覆盖 → 保留旧记忆，仅本次任务用新值（apply_current_task_override）
+        返回结构化冲突决策，供调用方决定是否真正落盘。
+        """
+        node = self._backend.get(key)
+        if node is None:
+            # 无旧记忆，直接新建（无冲突）
+            flow = Flow(
+                text=new_text,
+                layer=FlowLayer.INPUT,
+                type=FlowType.FACT,
+                source=Source.USER_STATED,
+                direction=Direction.INBOUND,
+                ttl=TTL.STABLE,
+                confidence=new_confidence,
+            )
+            self.deposit(flow, key=key)
+            return {
+                "conflict_type": "none",
+                "decision": "create",
+                "reason": "无既有记忆，直接新建",
+                "action": "created",
+            }
+
+        # 判断冲突：新旧文本是否实质冲突（置信度或内容分歧）
+        if node.text.strip() == new_text.strip():
+            return {"conflict_type": "none", "decision": "keep_same", "reason": "内容一致", "action": "noop"}
+
+        is_longterm = scope == "preference"
+        if is_longterm:
+            node.corrections.append({
+                "at": time.time(), "kind": "supersede", "by": by,
+                "from": node.text, "to": new_text, "scope": "preference",
+            })
+            node.text = new_text
+            node.confidence = new_confidence
+            node.source = Source.USER_STATED
+            node.provenance.source_type = "user_explicit"
+            node.provenance.confirmed_by = "user"
+            node.updated_at = time.time()
+            self._backend.upsert(node)
+            self.save()
+            return {
+                "conflict_type": "scope_mismatch",
+                "decision": "supersede",
+                "reason": "用户确认为长期偏好变化，旧记忆被新偏好覆盖",
+                "action": "overwritten",
+            }
+
+        # 单次任务覆盖：保留旧记忆，返回本次任务覆盖指令
+        return {
+            "conflict_type": "scope_mismatch",
+            "decision": "keep_both",
+            "reason": f"长期记忆为「{node.text}」，本次任务要求「{new_text}」",
+            "action": "apply_current_task_override",
+        }
 
     # -- 持久化 -----------------------------------------------------------
     def to_dict(self) -> dict[str, Any]:

@@ -138,13 +138,22 @@ class Session:
         ]
 
     def call_tool(self, name: str, **kwargs: Any) -> Flow:
-        """调用工具并把结果包成一条工具流（第〇章「工具流」）。"""
+        """调用工具并把结果包成一条工具流（第〇章「工具流」）。
+
+        结果先过``sanitize``（第二梯队：工具结果消毒 / 污点追踪）：
+        清除提示词注入、脱敏密钥与 PII、超长截断，并把污点标签写入 payload，
+        供内核判断能否提权 / 是否需要策略复核。
+        """
         spec = self.tools.get(name)
         if spec is None:
             raise CharterError(f"未注册的工具：{name}")
         result = spec.handler(**kwargs)
+
+        from .sanitize import default_taint_for_source, sanitize
+
+        san = sanitize(str(result), taint=default_taint_for_source(name))
         flow = Flow(
-            text=f"[工具 {name}] {result}",
+            text=f"[工具 {name}] {san.text}",
             layer=FlowLayer.TOOL,
             type=FlowType.KNOWLEDGE,
             source=Source.RETRIEVED,
@@ -153,7 +162,12 @@ class Session:
             confidence=Confidence.HIGH,
             sensitivity=spec.sensitivity,
             permission=spec.permission,
-            payload={"tool": name, "args": kwargs},
+            payload={
+                "tool": name,
+                "args": kwargs,
+                "taint": san.taint,
+                "sanitized": san.to_dict(),
+            },
         )
         self._flows.append(flow)
         return flow

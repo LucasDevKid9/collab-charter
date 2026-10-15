@@ -83,7 +83,7 @@ def test_record_serialization_roundtrip() -> None:
 
 
 def test_pipeline_run_attaches_decisions(charter: Charter) -> None:
-    s = Session(charter)
+    s = Session(charter, audit=False)
     out = s.handle("帮我查一下 z3 最新版本")
     assert isinstance(out.decisions, list)
     assert len(out.decisions) >= 1
@@ -175,3 +175,42 @@ def test_replay_json(tmp_path, charter: Charter) -> None:
     data = json.loads(got)
     assert isinstance(data, list)
     assert data[0]["session_id"] == "sess-c"
+
+
+# -- Policy IR（P2-10 轻量版）--------------------------------------------
+def test_policy_ir_compile(charter: Charter) -> None:
+    from collab_charter.policy_ir import compile_charter
+
+    ir = compile_charter(charter)
+    assert len(ir.rules) == len(charter)
+    assert ir.risk_summary()
+    assert "critical" in ir.risk_summary()
+
+
+def test_policy_ir_query_and_format(charter: Charter) -> None:
+    from collab_charter.policy_ir import compile_charter
+
+    ir = compile_charter(charter)
+    r = ir.get("0.5-R4")
+    assert r is not None
+    assert r.policy_id == "0.5-R4"
+    assert r.kind_zh
+    assert r.chapter_title
+    assert "0.5-R4" in ir.format_rule(r)
+
+
+def test_policy_ir_self_diff_is_empty(charter: Charter) -> None:
+    from collab_charter.policy_ir import compile_charter
+
+    ir = compile_charter(charter)
+    d = ir.diff(compile_charter(charter))
+    assert d["counts"] == {"added": 0, "removed": 0, "changed": 0}
+
+
+def test_policy_ir_risk_filter(charter: Charter) -> None:
+    from collab_charter.policy_ir import compile_charter
+
+    ir = compile_charter(charter)
+    crit = ir.by_risk("critical")
+    assert crit  # 安全章节至少应有高危条款
+    assert all(r.risk_level == "critical" for r in crit)

@@ -68,6 +68,12 @@ PYTHONPATH=src python3 -m collab_charter.cli replay --sessions          # 列出
 PYTHONPATH=src python3 -m collab_charter.cli replay <session> --step    # 逐事件回放
 PYTHONPATH=src python3 -m collab_charter.cli replay --why <decision_id> # 解释某条决策（为什么拦/放）
 PYTHONPATH=src python3 -m collab_charter.cli replay <session> --json    # 机器可读导出
+
+# 宪章编译为策略IR + 风险概览 + 宪章差分（治理内核·P2-10 轻量版）
+PYTHONPATH=src python3 -m collab_charter.cli policy --summary           # 风险档概览
+PYTHONPATH=src python3 -m collab_charter.cli policy --risk critical     # 只看高危条款
+PYTHONPATH=src python3 -m collab_charter.cli policy --diff 另一份.yaml  # 宪章差分（改了什么）
+PYTHONPATH=src python3 -m collab_charter.cli policy --json              # 机器可读导出
 ```
 
 ### 2. Python
