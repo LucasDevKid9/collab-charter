@@ -62,6 +62,12 @@ PYTHONPATH=src python3 -m collab_charter.anchor \
   --constraints "x+y+z+w>=3; Implies(y==0,w==1)" \
   --decisions "做:x+y+z+w>=4; 观望:x+y+z+w==3; 不做:x+y+z+w<3" \
   --rounds "|y==0"
+
+# 治理内核：回放审计账本（每次 handle 自动记录，决策可解释、可复盘）
+PYTHONPATH=src python3 -m collab_charter.cli replay --sessions          # 列出审计会话
+PYTHONPATH=src python3 -m collab_charter.cli replay <session> --step    # 逐事件回放
+PYTHONPATH=src python3 -m collab_charter.cli replay --why <decision_id> # 解释某条决策（为什么拦/放）
+PYTHONPATH=src python3 -m collab_charter.cli replay <session> --json    # 机器可读导出
 ```
 
 ### 2. Python

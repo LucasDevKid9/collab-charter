@@ -3,6 +3,34 @@
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 版本号与宪章版本对齐：内核 `3.2.x` 对应宪章 `v3.2`。
 
+## [3.4.0] — 工作区（治理内核，待发版）
+
+从「能拦截」升级为「能解释、能复盘、能回放」——落地治理内核第一梯队：
+DecisionRecord + AuditLedger + Replay。
+
+### 治理内核
+- `governance.py`（新增）—— `DecisionRecord`：把闸门裁决 / 仲裁冲突 / 管线拦截
+  统一成结构化、可序列化、可解释的裁决记录（decision_id / event / subject /
+  action / outcome / clause_ids / evidence / risk_score / explanation / repair
+  / parent / trace_id），对齐「LLM 负责理解，Kernel 负责裁决」原则
+- `router.py` —— `PipelineRun` 新增 `decisions`：安全闸门、仲裁（含 0.5-R4 并列
+  询问）、管线终止三路全部自动挂载裁决记录
+- `session.py` —— `SessionOutcome` 新增 `decisions`；`Session` 支持 `audit=`
+  审计账本（默认启用默认账本，传 `audit=False` 关闭），每次 `handle()` 后自动
+  写入决策与逐站轨迹；新增 `session_id` 支持
+
+### 审计与回放
+- `audit.py`（新增）—— `AuditLedger`：append-only JSONL 账本，按 session 分文件，
+  每条事件带 `seq`/`event_id`/`ts`，跨进程重启 seq 不重号；`decisions_of()`
+  提取某会话全部决策记录
+- `cli.py` —— 新增 `replay` 子命令：`--sessions` 列出会话、
+  `<session> --step` 逐事件回放、`--why <id>` 解释单条决策、`--json` 机器可读
+- 新增测试：`tests/test_governance.py`（14 项），覆盖三路记录、序列化往返、
+  账本 append-only / seq 递增 / 决策提取 / Replay CLI 四模式
+
+### 验证
+- 测试 391 → **405** 全绿；`cli verify` 三契约 + 结构全过
+
 ## [3.3.0] — 2026-10
 
 从「高度可信的审计框架」升级为「可被 Agent 依赖的执行层」：

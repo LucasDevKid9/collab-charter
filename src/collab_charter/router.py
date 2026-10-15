@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Iterable, Sequence
+from uuid import uuid4
 
 from .arbiter import ArbitrationResult, Arbiter
 from .charter_loader import Charter, CharterError
@@ -23,6 +24,10 @@ from .flows import (
     Source,
 )
 from .gates import GateDecision, SafetyGate, Verdict
+from .governance import (
+    DecisionRecord,
+    collect_arbitration_records,
+)
 from .memory import MemoryStore
 from .selfcheck import SelfCheckReport, SelfCheckRunner
 
@@ -109,6 +114,8 @@ class PipelineRun:
     emitted: list[Flow] = field(default_factory=list)
     terminated_at: PipelineStage | None = None
     mirror_text: str = ""
+    #: 治理内核：本次执行的逐条结构化裁决记录（DecisionRecord）。
+    decisions: list[DecisionRecord] = field(default_factory=list)
 
     @property
     def completed(self) -> bool:
@@ -266,6 +273,7 @@ class Router:
         """
         route = route or self.plan()
         run = PipelineRun(route=route)
+        trace_id = f"trace-{uuid4().hex[:12]}"
         current: list[Flow] = list(flows)
         hooks = stage_hooks or {}
 
@@ -280,9 +288,19 @@ class Router:
             if stage is PipelineStage.SAFETY_GATE:
                 decisions = self.gate.inspect_all(current)
                 run.gate_decisions = decisions
+                run.decisions.extend(
+                    DecisionRecord.from_gate(d, trace_id=trace_id) for d in decisions
+                )
                 if SafetyGate.blocks_pipeline(decisions):
                     run.records.append(
                         StageRecord(stage, False, "存在拦截裁决，管线终止（0.3-I3）", "0.3-I3")
+                    )
+                    run.decisions.append(
+                        DecisionRecord.from_stage(
+                            stage="safety_gate", detail="存在拦截裁决，管线终止",
+                            clause="0.3-I3", ok=False, trace_id=trace_id,
+                            risk=1.0,
+                        )
                     )
                     run.terminated_at = stage
                     return run, []
@@ -342,6 +360,9 @@ class Router:
                 factual = [f for f in current if f.is_factual]
                 arb = self.arbiter.arbitrate(factual) if factual else ArbitrationResult()
                 run.arbitration = arb
+                run.decisions.extend(
+                    collect_arbitration_records(arb, trace_id=trace_id)
+                )
                 survivor_ids = {f.id for f in arb.survivors}
                 current = [f for f in current if (not f.is_factual) or f.id in survivor_ids]
                 run.records.append(

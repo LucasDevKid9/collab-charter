@@ -89,6 +89,14 @@ def _build_parser() -> argparse.ArgumentParser:
     pa.add_argument("--max-solutions", type=int, default=100)
     pa.add_argument("--as-json", action="store_true")
     pa.add_argument("--selftest", action="store_true", help="跑内置验收")
+
+    prp = sub.add_parser("replay", help="回放审计账本中的会话决策流（治理内核）")
+    prp.add_argument("session", nargs="?", default="", help="会话 id（或 audit 目录中的文件名）")
+    prp.add_argument("--step", action="store_true", help="逐事件展开回放")
+    prp.add_argument("--why", help="解释某条决策记录（decision_id）")
+    prp.add_argument("--json", action="store_true", help="输出机器可读 JSON")
+    prp.add_argument("--audit-dir", default="", help="审计目录（默认 ./audit）")
+    prp.add_argument("--sessions", action="store_true", help="列出全部会话")
     return p
 
 
@@ -349,6 +357,94 @@ def cmd_anchor(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_replay(charter: Charter, args: argparse.Namespace) -> int:
+    """回放审计账本：列出会话 / 逐事件 / 解释某条决策（治理内核）。"""
+    from .audit import AuditLedger
+
+    ledger = AuditLedger(args.audit_dir) if args.audit_dir else AuditLedger()
+
+    if args.sessions:
+        sessions = ledger.all_sessions()
+        if not sessions:
+            print("（审计目录为空，尚无会话记录）")
+            return 0
+        print("审计会话：")
+        for sid in sessions:
+            n = len(ledger.decisions_of(sid))
+            print(f"  {sid:<24} 决策 {n} 条")
+        return 0
+
+    if args.why:
+        # 解释单条决策记录
+        target = args.why
+        found = None
+        for sid in ledger.all_sessions():
+            for d in ledger.decisions_of(sid):
+                if d.decision_id == target or target in d.explanation:
+                    found = d
+                    break
+            if found:
+                break
+        if found is None:
+            print(f"未找到决策记录：{target}", file=sys.stderr)
+            return 2
+        if args.json:
+            import json as _json
+
+            print(_json.dumps(found.to_dict(), ensure_ascii=False, indent=2))
+            return 0
+        print(full_sid := f"决策 {found.decision_id}（trace {found.trace_id}）")
+        print(found.explain())
+        return 0
+
+    if not args.session:
+        print("请指定会话 id，或用 `--sessions` 列出全部会话。", file=sys.stderr)
+        return 2
+
+    events = ledger.read(args.session)
+    if not events:
+        # 允许不带 .jsonl 后缀的会话名
+        if ledger._file_for(args.session).exists():
+            events = ledger.read(args.session)
+        if not events:
+            print(f"会话 {args.session} 无审计记录。用 `collab-charter replay --sessions` 查看。",
+                  file=sys.stderr)
+            return 2
+
+    if args.json:
+        import json as _json
+
+        print(_json.dumps(
+            [ev.to_dict() for ev in events], ensure_ascii=False, indent=2
+        ))
+        return 0
+
+    decisions = ledger.decisions_of(args.session)
+    print(f"── 会话 {args.session} 回放 ──")
+    print(f"审计事件 {len(events)} 条 · 决策 {len(decisions)} 条\n")
+
+    if args.step:
+        for ev in events:
+            ts = ev.ts[11:19] if len(ev.ts) >= 19 else ev.ts
+            print(f"[{ev.seq:>3}] {ts} {ev.event_type}")
+            payload = ev.payload
+            if ev.event_type == "decision" and "explanation" in payload:
+                print(f"      → {payload['outcome']}：{payload['explanation'][:70]}")
+            elif ev.event_type == "pipeline":
+                route = payload.get("route", "")
+                print(f"      → {route}")
+                for r in payload.get("stage_records", []):
+                    print(f"      · {r[:80]}")
+        print()
+    else:
+        # 简洁回放：决策摘要
+        for d in decisions:
+            mark = {"allow": "✓", "deny": "✗", "ask": "？", "degrade": "~"}.get(d.outcome, "·")
+            print(f"  {mark} {d.event:<14} {d.outcome:<8} {d.explanation[:70]}")
+
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -370,6 +466,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "mine": lambda a: cmd_mine(charter, a),
         "field": lambda a: cmd_field(charter, a),
         "anchor": lambda a: cmd_anchor(a),
+        "replay": lambda a: cmd_replay(charter, a),
     }
     return table[args.cmd](args)
 

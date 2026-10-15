@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Sequence
+from uuid import uuid4
 
 from .charter_loader import Charter, CharterError
 from .flows import (
@@ -77,6 +78,7 @@ class SessionOutcome:
     selfcheck: SelfCheckReport | None = None
     degraded: list[str] = field(default_factory=list)
     shortcut_effects: list[str] = field(default_factory=list)
+    decisions: list[Any] = field(default_factory=list)
 
     @property
     def trace(self) -> str:
@@ -96,11 +98,20 @@ class Session:
         memory: MemoryStore | None = None,
         level: TaskLevel = TaskLevel.L2,
         agent_cannot: Sequence[str] = (),
+        audit: Any | None = None,
+        session_id: str | None = None,
     ) -> None:
         self.charter = charter or Charter.load()
         self.memory = memory or MemoryStore()
         self.router = Router(self.charter, memory=self.memory)
         self.level = level
+        #: 审计账本。传入 ``audit=False`` 关闭；否则默认启用默认账本。
+        self.audit = audit if audit is not False else None
+        if self.audit is None and audit is not False:
+            from .audit import default_ledger
+
+            self.audit = default_ledger()
+        self.session_id = session_id or uuid4().hex[:10]
         self.tools: dict[str, ToolSpec] = {}
         #: 本环境确实无法执行的条款 id；初始化时校验其存在于宪章
         self.agent_cannot: list[str] = []
@@ -255,6 +266,19 @@ class Session:
         if run.arbitration and run.arbitration.has_tiebreak:
             tiebreak = run.arbitration.tiebreak_questions[0]
 
+        # 治理内核：写入审计账本（若启用）
+        if self.audit is not None:
+            try:
+                self.audit.record_pipeline(
+                    self.session_id,
+                    route=str(route),
+                    records=[str(r) for r in run.records],
+                    decisions=run.decisions,
+                    terminated=not run.completed,
+                )
+            except Exception:  # 审计失败不阻断主流程（防审计故障拖垮对话）
+                pass
+
         return SessionOutcome(
             text=text,
             flows=emitted,
@@ -264,6 +288,7 @@ class Session:
             selfcheck=run.selfcheck,
             degraded=[f"{cid}：{DEFAULT_DEGRADATIONS.get(cid, '请求用户协助')}" for cid in self.agent_cannot],
             shortcut_effects=[f"{w} → {SHORTCUT_BEHAVIOR[w]}" for w in said],
+            decisions=run.decisions,
         )
 
     # -- 回流 -------------------------------------------------------------

@@ -25,3 +25,7 @@ memory.json
 *.swp
 .DS_Store
 Thumbs.db
+
+# 审计账本（运行时产生，不入库）
+audit/
+*.audit.jsonl
