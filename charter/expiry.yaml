@@ -216,107 +216,236 @@ entries:
   - id: 1-C2
     expiry_test: 所有目标平台的工具能力可由 MCP capabilities 自动判定、降级路径标准化且覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 能力协商已存在，缺的是「降级路径」的标准化；写不出降级方案就不该宣称可执行。
 
   - id: 1-C3
     expiry_test: 平台原生支持人格 / 称呼配置且跨会话持久化的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 自定义指令已普及，跨工具持久化仍未统一。
 
   - id: 2-P1
     expiry_test: 用户语言与术语偏好可由平台级个人档案跨工具携带的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 画像类条款的退休不是能力问题，而是「偏好被外部化为可携带档案」；档案普及即退休。
 
   - id: 2-P2
     expiry_test: 用户的对齐偏好（轻仪式、AI 承担对齐成本）可由平台级个人档案携带的覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 与 2-P1 同属画像外化；本条还隐含「对齐成本归属」，平台档案未必能表达。
 
   - id: 2-P3
     expiry_test: AI 的自主决策路径与依据可由平台原生记录并复盘的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 治理内核已在本地实现该能力；退休条件是平台原生具备，而非我们自建。
 
   - id: 2-P4
     expiry_test: 平台档案原生携带「结构化偏好」且模型默认按体系化输出（人工评分 ≥95%）。
     status: active
-    review: draft
+    review: approved
     note: 结构化偏好比语言偏好难外化一个量级。
 
   - id: 2-P5
     expiry_test: 事实性输出由平台原生附带可核实外部链接的覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 与 0.8-C3 / 5-R2 同源，三条可一并评估、一并退休。
 
   - id: 2-P6
     expiry_test: 交付物默认包含可执行验证（CI / 复现脚本）成为平台标准的覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 与「验证取证」偏好绑定；平台若把验证内建，本条失去存在理由。
 
   - id: 3-R1
     expiry_test: 模型默认采用「结论先行」结构的比例 ≥95%（人工评分，连续 100 次）。
     status: candidate
-    review: draft
+    review: approved
     note: 模型侧已接近；平台默认模板仍是主要变量。
 
   - id: 3-R4
     expiry_test: 澄清式提问连续 100 次满足「≤1 问 / 次」且回问后返工率 ≤2%。
     status: active
-    review: draft
+    review: approved
     note: 需要回问与返工的埋点；与 3-R3 共用返工计量。
 
   - id: 3-R5
     expiry_test: 全部默认项（结论先行 / 中文 / 直接 / 标注不确定 / 给备选）由平台级档案承载的覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 本条是 3-R1 / 3-R2 / 2-P1 的合集，退休应与它们同步，不得单独退休。
 
   - id: 3-R6
     expiry_test: 主动补全且明确标注「这是我补充的」的准确率连续 100 次 ≥95%（人工评分）。
     status: active
-    review: draft
+    review: approved
     note: 准确率按「补充是否被用户采纳」判定，而非仅看是否标注。
 
   - id: 3-R7
     expiry_test: 永不退休（价值边界）。
     status: permanent
-    review: draft
+    review: approved
     note: 诚实优先、不编造、不确定就标注——这是价值承诺，不是能力项；能力提升只改变标注形式，不改变「不得编造」。
 
   - id: 5-R1
     expiry_test: 输出冗余度连续 100 次 ≤1.2 倍（人工评分，与 0.8-C6 共用口径）。
     status: active
-    review: draft
+    review: approved
     note: 与 0.8-C6 同源：C6 是自检项，R1 是行为约束。
 
   - id: 5-R3
     expiry_test: 开放问题上自发给出完整证据链（假设 / 反证 / 验证三段）的比例 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 三段齐全才算证据链；只有结论加引用不算。
 
   - id: 5-R4
     expiry_test: 套话率（人工判定无信息量段落占比）连续 100 次 ≤5%。
     status: active
-    review: draft
+    review: approved
     note: 需要「套话」的可操作判定口径，否则阈值不可复算。
 
   - id: 5-R5
     expiry_test: 情绪适配准确率 ≥95% 且操纵性措辞检出率为零（连续 100 次）。
     status: active
-    review: draft
+    review: approved
     note: 两个条件必须同时满足；检出率依赖审核词表。
 
   - id: 5-R6
     expiry_test: 红线场景下「解释 + 替代」覆盖率 ≥95% 且越界事故为零。
     status: active
-    review: draft
+    review: approved
     note: 越界事故按「未拒绝 + 未给替代」双条件判定。
+
+  # --------------------------------------------------------------------------
+  # 第四 / 六 / 七 / 八 / 九章 · 澄清、文件、记忆、格式与快捷词（21 条草稿）
+  # --------------------------------------------------------------------------
+  - id: 4-V1
+    expiry_test: 无本条时首轮即命中真实目标的比例连续 100 次 ≥95%（事后判定）。
+    status: active
+    review: draft
+    note: 目标推断是四问中最难的一项；「事后判定」指用户未提出方向性修正。
+
+  - id: 4-V2
+    expiry_test: 受众判断准确率连续 100 次 ≥95%（按是否返工判定）。
+    status: active
+    review: draft
+    note: 受众错判通常表现为深度或术语层级返工。
+
+  - id: 4-V3
+    expiry_test: 约束遗漏率连续 100 次 ≤2%（交付后发现的遗漏占比）。
+    status: active
+    review: draft
+    note: 约束遗漏的代价最高，阈值应比其它维更严。
+
+  - id: 4-V4
+    expiry_test: 对「卡点」的定位准确率连续 100 次 ≥95%（用户确认定位正确）。
+    status: active
+    review: draft
+    note: 需要用户确认环节；无确认则无法计算准确率。
+
+  - id: 6-R1
+    expiry_test: 平台原生提供按任务授权的文件访问范围控制、默认最小权限的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 沙箱化文件访问已出现，但「默认最小权限」尚未成为产品共识。
+
+  - id: 6-R2
+    expiry_test: 文件读取失败时如实说明的比例连续 100 次 100%，且零脑补事故。
+    status: active
+    review: draft
+    note: 3-R7 在文件场景的特例；三条诚实类条款（3-R7 / 5-R2 / 6-R2）共享同一评审口径。
+
+  - id: 6-R3
+    expiry_test: 平台原生提供不可逆操作的「预览 + 确认 + 回滚」三件套且默认启用的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 操作系统级确认已普及，缺的是「预览 + 回滚」的组合。
+
+  - id: 7-R1
+    expiry_test: 意图误判率（事后返工占比）连续 100 次 ≤2%（与 0.3-I2 / 3-R3 共用指标）。
+    status: active
+    review: draft
+    note: 三条同源：0.3-I2 约束流程、3-R3 约束行为、7-R1 约束记忆回流前的对齐。
+
+  - id: 7-R2
+    expiry_test: 平台原生结构化记忆（标签 / 关联 / 隐私标记）覆盖率 ≥95%（与 0.6-O1 同源）。
+    status: active
+    review: draft
+    note: 与 0.6 系列一并评估；本条额外要求「隐私字段标 private」。
+
+  - id: 7-R3
+    expiry_test: 模型在开放决策上自发呈现三角对冲（建构 / 质疑 / 验证）且分歧标注完整的比例 ≥95%。
+    status: active
+    review: draft
+    note: 多视角对冲仍是研究前沿，短期不会退休。
+
+  - id: 8-R1
+    expiry_test: 渲染层能按内容类型自动选择容器（正文 / 代码 / 引用 / 表格）的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 部分编辑器已做半自动判定；「按性质选用」仍靠模型自觉。
+
+  - id: 8-R2
+    expiry_test: 事实性结论与代码交付物原生附带来源 / 依赖 / 路径的覆盖率 ≥95%（与 0.8-C3 同源）。
+    status: active
+    review: draft
+    note: 四连同源：0.8-C3 / 2-P5 / 5-R2 / 8-R2，应同步退休。
+
+  - id: 8-R3
+    expiry_test: 客户端原生提供大纲 / 锚点导航的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 长文导航已是常见能力，但内建大纲的客户端仍非全部。
+
+  - id: 8-R4
+    expiry_test: 平台原生支持自定义快捷指令的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 与 9-W 系列同源：快捷词若由平台承载，词表类条款一并退休。
+
+  - id: 8-R5
+    expiry_test: 输出冗余度连续 100 次 ≤1.2 倍（人工评分，与 5-R1 / 0.8-C6 共用口径）。
+    status: active
+    review: draft
+    note: 三条同源；0.8-C6 是自检、5-R1 是行为、8-R5 是格式。
+
+  - id: 9-W1
+    expiry_test: 「展开讲讲」类自然语言指令识别准确率 ≥95%（连续 100 次）。
+    status: candidate
+    review: draft
+    note: 快捷词的本质是补偿意图识别；识别够准则词表可退。
+
+  - id: 9-W2
+    expiry_test: 「说短点 / 结论就行」类自然语言指令识别准确率 ≥95%（连续 100 次）。
+    status: candidate
+    review: draft
+    note: 与 9-W1 同源，可一并评估。
+
+  - id: 9-W3
+    expiry_test: 「只讲方法」类自然语言指令识别准确率 ≥95%（连续 100 次）。
+    status: active
+    review: draft
+    note: 低频意图，识别难度高于展开 / 压缩。
+
+  - id: 9-W4
+    expiry_test: 「补来源」类自然语言指令识别准确率 ≥95%（连续 100 次）。
+    status: active
+    review: draft
+    note: 与来源类条款共享同一能力上限（0.8-C3 / 5-R2）。
+
+  - id: 9-W5
+    expiry_test: 「别问了直接做」类指令识别准确率 ≥95% 且该问而未问的误判率 ≤2%。
+    status: candidate
+    review: draft
+    note: 双条件：识别准，且不乱跳过必要确认。
+
+  - id: 9-W6
+    expiry_test: 「多找反例」类自然语言指令识别准确率 ≥95%（连续 100 次）。
+    status: active
+    review: draft
+    note: 与 7-R3（三角对冲）能力同源，可一并评估。
