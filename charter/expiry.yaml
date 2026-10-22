@@ -31,121 +31,121 @@ entries:
   - id: 0.1-V
     expiry_test: 平台原生以结构化元数据携带「分层 × 类型」双标注、且客户端默认消费的比例 ≥95%。
     status: active
-    review: draft
-    note: 双标注是本宪章自有分类法，平台不会原生采用；退休依赖分类法成为行业标准。
+    review: approved
+    note: 双标注是本宪章自有分类法，平台不会原生采用；退休依赖分类法成为行业标准。审查官异议：该条件现实中近乎不可满足，建议改为「结构化 schema 可表达」；主权者批准原案。
 
   - id: 0.2-V
     expiry_test: 主流客户端原生区分「内部元数据 / 用户内容」并默认折叠前者的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 推理面板的「折叠 / 展开」已在普及，但元数据分层尚未成为默认。
 
   - id: 0.3-I1
     expiry_test: 平台原生提供会话结束自动回流、且用户可关闭的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 与 0.8-C4 同一依赖：原生记忆普及但默认回流与可控性未同时满足。
 
   - id: 0.3-I2
     expiry_test: 意图误判率（事后返工占比）在无镜像站时连续 100 次任务 ≤2%。
     status: active
-    review: draft
+    review: approved
     note: 与 3-R3 共用同一指标——本条约束流程（第 3 站），3-R3 约束行为。
 
   - id: 0.3-I3
     expiry_test: 永不退休（安全不变量）。
     status: permanent
-    review: draft
-    note: 「闸门不过，后续站点不执行」是流程级安全不变量；若整条管线被平台原生替代，本条随管线整体退休，而非单独退休。
+    review: approved
+    note: 「闸门不过，后续站点不执行」是流程级安全不变量；若整条管线被平台原生替代，本条随管线整体退休，而非单独退休。审查官异议：既然存在随管线整体退休的出口，就不应标 permanent，建议改 active；主权者批准原案。
 
   - id: 0.4-R1
     expiry_test: 永不退休（价值序）。
     status: permanent
-    review: draft
+    review: approved
     note: 准确性高于用户目标属于价值排序，不是能力项；模型越强，迎合越隐蔽，越需要本条。
 
   - id: 0.5-R1
     expiry_test: 模型输出自带校准置信度且可机器判定（ECE ≤0.05、覆盖率 ≥95%）。
     status: active
-    review: draft
+    review: approved
     note: 校准是前置条件；没有 ECE 评测集，本条不得退休。
 
   - id: 0.5-R2
     expiry_test: 记忆系统原生按「偏好 / 约束」类型标记并自动裁决新旧冲突，覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 依赖记忆系统的类型化，而非模型能力。
 
   - id: 0.5-R3
     expiry_test: 连续 100 次会话零「以推测覆盖用户显式陈述」事故。
     status: active
-    review: draft
+    review: approved
     note: 事故需有埋点与人工复核；无记录不得视为零事故。
 
   - id: 0.5-R4
     expiry_test: 客户端原生支持并列分歧视图且模型默认使用率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 当前无标准化分歧呈现组件，退休条件最远的一条。
 
   - id: 0.5-R5
     expiry_test: 情感显著场景下的事实裁决偏差连续 100 次 ≤1%。
     status: active
-    review: draft
+    review: approved
     note: 需情感标注测试集；偏差按「结论是否被情绪信号改变」判定。
 
   - id: 0.6-O1
     expiry_test: 平台原生记忆默认携带标签 / 时效 / 敏感度元数据且可导出的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 记忆元数据正在标准化，但「可导出」仍是缺口。
 
   - id: 0.6-O2
     expiry_test: 记忆检索 API 原生返回结构化元数据（非纯文本）的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 与 0.6-O1 同源，可一并评估。
 
   - id: 0.6-O3
     expiry_test: 记忆系统原生实现时效衰减与纠正来源链的覆盖率 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 衰减与溯源是记忆系统最难原生化的一对能力。
 
   - id: 0.7-R1
     expiry_test: 客户端原生提供「折叠推理 / 展开细节」交互且默认折叠率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 交互已存在，缺的是「默认折叠」的产品共识。
 
   - id: 0.7-R2
     expiry_test: 「简化」指令遵从率连续 100 次 ≥99%（无需本条约束）。
     status: active
-    review: draft
+    review: approved
     note: 遵从率需按「结论保留 + 依据完整」双条件判定。
 
   - id: 0.8-C1
     expiry_test: 长会话（≥50 轮）关键约束保持率 ≥99%（自动评测集）。
     status: active
-    review: draft
+    review: approved
     note: 需要构造 ≥50 轮的压力评测集，当前没有。
 
   - id: 0.8-C2
     expiry_test: 校准置信度 ECE ≤0.05 且原生展示率 ≥95%（与 0.7-R3 共用条件，随其一并退休）。
     status: active
-    review: draft
+    review: approved
     note: 与 0.7-R3 同一能力依赖，分开登记只为保留两条的归属关系。
 
   - id: 0.8-C5
     expiry_test: 安全闸门由平台在调用前强制执行、不可绕过且覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 平台级前置拦截正在出现，但「不可绕过」尚未成立。
 
   - id: 0.8-C6
     expiry_test: 输出冗余度（人工评分，必要信息倍数）连续 100 次 ≤1.2 倍。
     status: active
-    review: draft
+    review: approved
     note: 需定义「必要信息量」的评分口径，否则阈值不可复算。
   - id: 1-C1
     expiry_test: 连续 50 次会话在无本条约束时零寒暄、零预告，且输出长度自发 ≤3 行的比例 ≥95%。
@@ -170,11 +170,13 @@ entries:
   - id: 0.7-R3
     expiry_test: 模型对高风险事实断言自发给出校准置信度（ECE ≤0.05）且平台原生展示的比例 ≥95%。
     status: active
+    review: approved
     note: 校准与展示是两个条件，任一不满足本条即继续服役。
 
   - id: 0.8-C3
     expiry_test: 所有工具调用与外部事实由平台原生附带可验证来源（含签名）的比例 ≥95%。
     status: candidate
+    review: approved
     note: MCP 生态的 provenance 正在标准化，外部信任指数也在推动；方向明确但未普及。
 
   - id: 5-R2
@@ -190,6 +192,7 @@ entries:
   - id: 0.8-C4
     expiry_test: 平台原生提供跨会话记忆且默认开启回流，覆盖率 ≥95%。
     status: candidate
+    review: approved
     note: 原生记忆渐成标配，但「默认回流」与「用户可控」尚未同时满足。
 
   - id: 7-R4
@@ -206,3 +209,114 @@ entries:
     expiry_test: 永不退休（对照项）。
     status: permanent
     note: AI 不伪装人类、不诱导依赖、不替用户做重大人生决定——这是伦理边界，不是能力问题。
+
+  # --------------------------------------------------------------------------
+  # 第一 / 二 / 三 / 五章 · 接收、偏好与行为约束（18 条草稿）
+  # --------------------------------------------------------------------------
+  - id: 1-C2
+    expiry_test: 所有目标平台的工具能力可由 MCP capabilities 自动判定、降级路径标准化且覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 能力协商已存在，缺的是「降级路径」的标准化；写不出降级方案就不该宣称可执行。
+
+  - id: 1-C3
+    expiry_test: 平台原生支持人格 / 称呼配置且跨会话持久化的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 自定义指令已普及，跨工具持久化仍未统一。
+
+  - id: 2-P1
+    expiry_test: 用户语言与术语偏好可由平台级个人档案跨工具携带的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 画像类条款的退休不是能力问题，而是「偏好被外部化为可携带档案」；档案普及即退休。
+
+  - id: 2-P2
+    expiry_test: 用户的对齐偏好（轻仪式、AI 承担对齐成本）可由平台级个人档案携带的覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 与 2-P1 同属画像外化；本条还隐含「对齐成本归属」，平台档案未必能表达。
+
+  - id: 2-P3
+    expiry_test: AI 的自主决策路径与依据可由平台原生记录并复盘的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 治理内核已在本地实现该能力；退休条件是平台原生具备，而非我们自建。
+
+  - id: 2-P4
+    expiry_test: 平台档案原生携带「结构化偏好」且模型默认按体系化输出（人工评分 ≥95%）。
+    status: active
+    review: draft
+    note: 结构化偏好比语言偏好难外化一个量级。
+
+  - id: 2-P5
+    expiry_test: 事实性输出由平台原生附带可核实外部链接的覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 与 0.8-C3 / 5-R2 同源，三条可一并评估、一并退休。
+
+  - id: 2-P6
+    expiry_test: 交付物默认包含可执行验证（CI / 复现脚本）成为平台标准的覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 与「验证取证」偏好绑定；平台若把验证内建，本条失去存在理由。
+
+  - id: 3-R1
+    expiry_test: 模型默认采用「结论先行」结构的比例 ≥95%（人工评分，连续 100 次）。
+    status: candidate
+    review: draft
+    note: 模型侧已接近；平台默认模板仍是主要变量。
+
+  - id: 3-R4
+    expiry_test: 澄清式提问连续 100 次满足「≤1 问 / 次」且回问后返工率 ≤2%。
+    status: active
+    review: draft
+    note: 需要回问与返工的埋点；与 3-R3 共用返工计量。
+
+  - id: 3-R5
+    expiry_test: 全部默认项（结论先行 / 中文 / 直接 / 标注不确定 / 给备选）由平台级档案承载的覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 本条是 3-R1 / 3-R2 / 2-P1 的合集，退休应与它们同步，不得单独退休。
+
+  - id: 3-R6
+    expiry_test: 主动补全且明确标注「这是我补充的」的准确率连续 100 次 ≥95%（人工评分）。
+    status: active
+    review: draft
+    note: 准确率按「补充是否被用户采纳」判定，而非仅看是否标注。
+
+  - id: 3-R7
+    expiry_test: 永不退休（价值边界）。
+    status: permanent
+    review: draft
+    note: 诚实优先、不编造、不确定就标注——这是价值承诺，不是能力项；能力提升只改变标注形式，不改变「不得编造」。
+
+  - id: 5-R1
+    expiry_test: 输出冗余度连续 100 次 ≤1.2 倍（人工评分，与 0.8-C6 共用口径）。
+    status: active
+    review: draft
+    note: 与 0.8-C6 同源：C6 是自检项，R1 是行为约束。
+
+  - id: 5-R3
+    expiry_test: 开放问题上自发给出完整证据链（假设 / 反证 / 验证三段）的比例 ≥95%。
+    status: active
+    review: draft
+    note: 三段齐全才算证据链；只有结论加引用不算。
+
+  - id: 5-R4
+    expiry_test: 套话率（人工判定无信息量段落占比）连续 100 次 ≤5%。
+    status: active
+    review: draft
+    note: 需要「套话」的可操作判定口径，否则阈值不可复算。
+
+  - id: 5-R5
+    expiry_test: 情绪适配准确率 ≥95% 且操纵性措辞检出率为零（连续 100 次）。
+    status: active
+    review: draft
+    note: 两个条件必须同时满足；检出率依赖审核词表。
+
+  - id: 5-R6
+    expiry_test: 红线场景下「解释 + 替代」覆盖率 ≥95% 且越界事故为零。
+    status: active
+    review: draft
+    note: 越界事故按「未拒绝 + 未给替代」双条件判定。
