@@ -90,6 +90,12 @@ def _build_parser() -> argparse.ArgumentParser:
     pa.add_argument("--as-json", action="store_true")
     pa.add_argument("--selftest", action="store_true", help="跑内置验收")
 
+    pd = sub.add_parser("decay", help="条款折旧：退休条件登记与状态（自我删除机制）")
+    pd.add_argument("--expiry", help="登记表路径（默认 charter/expiry.yaml）")
+    pd.add_argument("--status", choices=["active", "candidate", "retired", "permanent"],
+                    help="只看某一状态的条款")
+    pd.add_argument("--json", action="store_true", help="机器可读输出")
+
     prp = sub.add_parser("replay", help="回放审计账本中的会话决策流（治理内核）")
     prp.add_argument("session", nargs="?", default="", help="会话 id（或 audit 目录中的文件名）")
     prp.add_argument("--step", action="store_true", help="逐事件展开回放")
@@ -498,6 +504,28 @@ def cmd_policy(charter: Charter, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_decay(charter: Charter, args: argparse.Namespace) -> int:
+    """条款折旧：列出退休条件与状态（只读，不修改宪章）。"""
+    from .decay import DecayError, load_expiry
+
+    try:
+        report = load_expiry(getattr(args, "expiry", None), charter)
+    except DecayError as exc:
+        print(f"折旧登记表无效：{exc}", file=sys.stderr)
+        return 2
+
+    if args.status:
+        entries = [e for e in report.entries if e.status == args.status]
+        report.entries = entries
+
+    if args.json:
+        print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+        return 0
+
+    print(report.render())
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -519,6 +547,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "mine": lambda a: cmd_mine(charter, a),
         "field": lambda a: cmd_field(charter, a),
         "anchor": lambda a: cmd_anchor(a),
+        "decay": lambda a: cmd_decay(charter, a),
         "replay": lambda a: cmd_replay(charter, a),
         "policy": lambda a: cmd_policy(charter, a),
     }

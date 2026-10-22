@@ -32,6 +32,7 @@ from .selfcheck import SelfCheckItem, SelfCheckReport, SelfCheckRunner
 from .router import PipelineStage, Route, Router
 from .session import Session, SessionOutcome
 from .anchor import solve as anchor_solve
+from .decay import DecayError, DecayReport, ExpiryEntry, load_expiry, STATUSES
 from .lexicon import (
     KnowledgeBase,
     KnowledgeBaseError,
@@ -95,4 +96,10 @@ __all__ = [
     "MiningRequest",
     "MiningResult",
     "StatePolicy",
+    # decay（条款折旧：退休条件登记）
+    "DecayError",
+    "DecayReport",
+    "ExpiryEntry",
+    "load_expiry",
+    "STATUSES",
 ]
