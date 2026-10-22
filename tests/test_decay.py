@@ -28,9 +28,9 @@ from collab_charter.decay import (
 # ---------------------------------------------------------------------------
 
 class Test登记表加载:
-    def test_默认登记表可加载_12条样例(self, charter: Charter) -> None:
+    def test_默认登记表可加载_32条样例(self, charter: Charter) -> None:
         report = load_expiry(charter=charter)
-        assert len(report.entries) == 12
+        assert len(report.entries) == 32
         assert report.clause_total == len(charter.clauses) == 90
 
     def test_全部id都存在于宪章_无断链(self, charter: Charter) -> None:
@@ -56,6 +56,24 @@ class Test登记表加载:
         permanent = report.by_status("permanent")
         assert permanent, "登记表应至少保留一条 permanent 对照项"
         assert all(e.note for e in permanent), "对照项必须写明为什么不设退休条件"
+
+    def test_第〇章全部条款已登记(self, charter: Charter) -> None:
+        """M2 第一批交付的硬指标：第〇章 23 条无一遗漏。"""
+        report = load_expiry(charter=charter)
+        registered = {e.id for e in report.entries}
+        zero_chapter = {cid for cid in charter.clauses if cid.startswith("0.")}
+        assert len(zero_chapter) == 23
+        assert zero_chapter <= registered, zero_chapter - registered
+
+    def test_评审状态结构稳定(self, charter: Charter) -> None:
+        counts = load_expiry(charter=charter).review_counts()
+        assert list(counts) == ["draft", "approved", "rejected"]
+        assert counts["draft"] == 32
+        assert counts["approved"] == 0
+
+    def test_每条都有合法评审状态(self, charter: Charter) -> None:
+        for e in load_expiry(charter=charter).entries:
+            assert e.review in ("draft", "approved", "rejected")
 
     def test_每条退休条件都非空且可证伪(self, charter: Charter) -> None:
         """退休条件必须可观测：数值阈值，或「零 / 全部 / 所有 / 永不」类全称判定。"""
@@ -101,6 +119,14 @@ class Test校验:
         with pytest.raises(DecayError, match="状态非法"):
             load_expiry(p, charter)
 
+    def test_非法评审状态报错(self, tmp_path: Path, charter: Charter) -> None:
+        p = _write(tmp_path, [
+            {"id": "1-C1", "expiry_test": "某个条件 ≥90%", "status": "active",
+             "review": "pending"},
+        ])
+        with pytest.raises(DecayError, match="评审状态非法"):
+            load_expiry(p, charter)
+
     def test_空退休条件报错(self, tmp_path: Path, charter: Charter) -> None:
         p = _write(tmp_path, [{"id": "1-C1", "expiry_test": "  ", "status": "active"}])
         with pytest.raises(DecayError, match="退休条件为空"):
@@ -125,11 +151,11 @@ class Test报告:
     def test_状态计数稳定含零(self, charter: Charter) -> None:
         counts = load_expiry(charter=charter).counts()
         assert list(counts) == list(STATUSES)
-        assert sum(counts.values()) == 12
+        assert sum(counts.values()) == 32
 
     def test_覆盖率按全部条款计算(self, charter: Charter) -> None:
         report = load_expiry(charter=charter)
-        assert report.coverage == pytest.approx(12 / 90)
+        assert report.coverage == pytest.approx(32 / 90)
 
     def test_文本报告含三列要素(self, charter: Charter) -> None:
         text = load_expiry(charter=charter).render()
@@ -141,7 +167,7 @@ class Test报告:
     def test_json可序列化且字段齐全(self, charter: Charter) -> None:
         data = load_expiry(charter=charter).to_dict()
         assert data["clause_total"] == 90
-        assert data["registered"] == 12
+        assert data["registered"] == 32
         assert data["entries"][0]["expiry_test"]
         json.dumps(data, ensure_ascii=False)  # 不抛异常即通过
 
@@ -170,7 +196,7 @@ class TestCLI:
 
         assert main(["decay", "--json"]) == 0
         data = json.loads(capsys.readouterr().out)
-        assert data["registered"] == 12
+        assert data["registered"] == 32
 
     def test_cli_decay_按状态过滤(self, capsys: pytest.CaptureFixture[str]) -> None:
         from collab_charter.cli import main
@@ -178,6 +204,13 @@ class TestCLI:
         assert main(["decay", "--status", "permanent"]) == 0
         out = capsys.readouterr().out
         assert "10-R2" in out
+
+    def test_cli_decay_按评审状态过滤(self, capsys: pytest.CaptureFixture[str]) -> None:
+        from collab_charter.cli import main
+
+        assert main(["decay", "--review", "draft"]) == 0
+        out = capsys.readouterr().out
+        assert "待批准 32" in out
 
     def test_cli_decay_坏登记表返回2(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]

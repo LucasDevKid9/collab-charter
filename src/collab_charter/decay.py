@@ -28,6 +28,15 @@ from .charter_loader import Charter
 #: 登记表状态全集。顺序即报告中的展示顺序。
 STATUSES: tuple[str, ...] = ("active", "candidate", "retired", "permanent")
 
+#: 评审状态：登记条目本身的治理状态，与条款生命周期状态正交。
+REVIEW_STATES: tuple[str, ...] = ("draft", "approved", "rejected")
+
+REVIEW_LABELS: dict[str, str] = {
+    "draft": "待批准",
+    "approved": "已批准",
+    "rejected": "已驳回",
+}
+
 #: 状态的中文标签（报告用）。
 STATUS_LABELS: dict[str, str] = {
     "active": "服役",
@@ -51,11 +60,16 @@ class ExpiryEntry:
     id: str
     expiry_test: str
     status: str = "active"
+    review: str = "draft"
     note: str | None = None
 
     @property
     def label(self) -> str:
         return STATUS_LABELS.get(self.status, self.status)
+
+    @property
+    def review_label(self) -> str:
+        return REVIEW_LABELS.get(self.review, self.review)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -63,6 +77,8 @@ class ExpiryEntry:
             "expiry_test": self.expiry_test,
             "status": self.status,
             "label": self.label,
+            "review": self.review,
+            "review_label": self.review_label,
             "note": self.note,
         }
 
@@ -82,6 +98,13 @@ class DecayReport:
             out[e.status] = out.get(e.status, 0) + 1
         return out
 
+    def review_counts(self) -> dict[str, int]:
+        """按评审状态的计数；结构稳定，未出现补 0。"""
+        out = {r: 0 for r in REVIEW_STATES}
+        for e in self.entries:
+            out[e.review] = out.get(e.review, 0) + 1
+        return out
+
     @property
     def coverage(self) -> float:
         """登记覆盖率：已写退休条件的条款 / 全部条款。0.0–1.0。"""
@@ -99,6 +122,7 @@ class DecayReport:
             "registered": len(self.entries),
             "coverage": round(self.coverage, 4),
             "counts": self.counts(),
+            "review_counts": self.review_counts(),
             "entries": [e.to_dict() for e in self.entries],
         }
 
@@ -110,6 +134,9 @@ class DecayReport:
             f"条款总数 {self.clause_total} · 已登记 {len(self.entries)}"
             f" · 覆盖率 {self.coverage:.0%}",
             "状态：" + " / ".join(f"{STATUS_LABELS[s]} {counts[s]}" for s in STATUSES),
+            "评审：" + " / ".join(
+                f"{REVIEW_LABELS[r]} {self.review_counts()[r]}" for r in REVIEW_STATES
+            ),
             "",
         ]
         id_w = max([len(e.id) for e in self.entries] + [4])
@@ -168,6 +195,7 @@ def load_expiry(
         cid = str(row.get("id", "")).strip()
         test = str(row.get("expiry_test", "")).strip()
         status = str(row.get("status", "active")).strip()
+        review = str(row.get("review", "draft")).strip()
         note = row.get("note")
         note = str(note).strip() if note is not None else None
 
@@ -183,8 +211,14 @@ def load_expiry(
             raise DecayError(
                 f"条款 {cid} 的状态非法：{status!r}（应为 {'/'.join(STATUSES)}）"
             )
+        if review not in REVIEW_STATES:
+            raise DecayError(
+                f"条款 {cid} 的评审状态非法：{review!r}（应为 {'/'.join(REVIEW_STATES)}）"
+            )
 
         seen.add(cid)
-        entries.append(ExpiryEntry(id=cid, expiry_test=test, status=status, note=note))
+        entries.append(
+            ExpiryEntry(id=cid, expiry_test=test, status=status, review=review, note=note)
+        )
 
     return DecayReport(entries=entries, clause_total=len(charter.clauses), source=str(p))

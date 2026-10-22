@@ -11,6 +11,11 @@
 #   retired   条件已满足，可删除（删除需留墓碑，删除本身必须可追溯）
 #   permanent 明确不设退休条件（对照项：本机制不是无脑删除）
 #
+# 评审状态（review，与上面的生命周期状态正交）：
+#   draft     草案，等待主权者批准
+#   approved  已批准，可作为退休依据
+#   rejected  已驳回，保留记录以显示「提议过什么、为什么被拒」
+#
 # 判定原则：退休条件必须可观测、可证伪。写不出阈值的，退回重写。
 # ============================================================================
 
@@ -20,6 +25,128 @@ meta:
   updated: "2026-10-22"
 
 entries:
+  # --------------------------------------------------------------------------
+  # 第〇章 · 信息流协议（20 条草稿；0.7-R3 / 0.8-C3 / 0.8-C4 已在前批）
+  # --------------------------------------------------------------------------
+  - id: 0.1-V
+    expiry_test: 平台原生以结构化元数据携带「分层 × 类型」双标注、且客户端默认消费的比例 ≥95%。
+    status: active
+    review: draft
+    note: 双标注是本宪章自有分类法，平台不会原生采用；退休依赖分类法成为行业标准。
+
+  - id: 0.2-V
+    expiry_test: 主流客户端原生区分「内部元数据 / 用户内容」并默认折叠前者的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 推理面板的「折叠 / 展开」已在普及，但元数据分层尚未成为默认。
+
+  - id: 0.3-I1
+    expiry_test: 平台原生提供会话结束自动回流、且用户可关闭的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 与 0.8-C4 同一依赖：原生记忆普及但默认回流与可控性未同时满足。
+
+  - id: 0.3-I2
+    expiry_test: 意图误判率（事后返工占比）在无镜像站时连续 100 次任务 ≤2%。
+    status: active
+    review: draft
+    note: 与 3-R3 共用同一指标——本条约束流程（第 3 站），3-R3 约束行为。
+
+  - id: 0.3-I3
+    expiry_test: 永不退休（安全不变量）。
+    status: permanent
+    review: draft
+    note: 「闸门不过，后续站点不执行」是流程级安全不变量；若整条管线被平台原生替代，本条随管线整体退休，而非单独退休。
+
+  - id: 0.4-R1
+    expiry_test: 永不退休（价值序）。
+    status: permanent
+    review: draft
+    note: 准确性高于用户目标属于价值排序，不是能力项；模型越强，迎合越隐蔽，越需要本条。
+
+  - id: 0.5-R1
+    expiry_test: 模型输出自带校准置信度且可机器判定（ECE ≤0.05、覆盖率 ≥95%）。
+    status: active
+    review: draft
+    note: 校准是前置条件；没有 ECE 评测集，本条不得退休。
+
+  - id: 0.5-R2
+    expiry_test: 记忆系统原生按「偏好 / 约束」类型标记并自动裁决新旧冲突，覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 依赖记忆系统的类型化，而非模型能力。
+
+  - id: 0.5-R3
+    expiry_test: 连续 100 次会话零「以推测覆盖用户显式陈述」事故。
+    status: active
+    review: draft
+    note: 事故需有埋点与人工复核；无记录不得视为零事故。
+
+  - id: 0.5-R4
+    expiry_test: 客户端原生支持并列分歧视图且模型默认使用率 ≥95%。
+    status: active
+    review: draft
+    note: 当前无标准化分歧呈现组件，退休条件最远的一条。
+
+  - id: 0.5-R5
+    expiry_test: 情感显著场景下的事实裁决偏差连续 100 次 ≤1%。
+    status: active
+    review: draft
+    note: 需情感标注测试集；偏差按「结论是否被情绪信号改变」判定。
+
+  - id: 0.6-O1
+    expiry_test: 平台原生记忆默认携带标签 / 时效 / 敏感度元数据且可导出的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 记忆元数据正在标准化，但「可导出」仍是缺口。
+
+  - id: 0.6-O2
+    expiry_test: 记忆检索 API 原生返回结构化元数据（非纯文本）的覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 与 0.6-O1 同源，可一并评估。
+
+  - id: 0.6-O3
+    expiry_test: 记忆系统原生实现时效衰减与纠正来源链的覆盖率 ≥95%。
+    status: active
+    review: draft
+    note: 衰减与溯源是记忆系统最难原生化的一对能力。
+
+  - id: 0.7-R1
+    expiry_test: 客户端原生提供「折叠推理 / 展开细节」交互且默认折叠率 ≥95%。
+    status: candidate
+    review: draft
+    note: 交互已存在，缺的是「默认折叠」的产品共识。
+
+  - id: 0.7-R2
+    expiry_test: 「简化」指令遵从率连续 100 次 ≥99%（无需本条约束）。
+    status: active
+    review: draft
+    note: 遵从率需按「结论保留 + 依据完整」双条件判定。
+
+  - id: 0.8-C1
+    expiry_test: 长会话（≥50 轮）关键约束保持率 ≥99%（自动评测集）。
+    status: active
+    review: draft
+    note: 需要构造 ≥50 轮的压力评测集，当前没有。
+
+  - id: 0.8-C2
+    expiry_test: 校准置信度 ECE ≤0.05 且原生展示率 ≥95%（与 0.7-R3 共用条件，随其一并退休）。
+    status: active
+    review: draft
+    note: 与 0.7-R3 同一能力依赖，分开登记只为保留两条的归属关系。
+
+  - id: 0.8-C5
+    expiry_test: 安全闸门由平台在调用前强制执行、不可绕过且覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 平台级前置拦截正在出现，但「不可绕过」尚未成立。
+
+  - id: 0.8-C6
+    expiry_test: 输出冗余度（人工评分，必要信息倍数）连续 100 次 ≤1.2 倍。
+    status: active
+    review: draft
+    note: 需定义「必要信息量」的评分口径，否则阈值不可复算。
   - id: 1-C1
     expiry_test: 连续 50 次会话在无本条约束时零寒暄、零预告，且输出长度自发 ≤3 行的比例 ≥95%。
     status: active

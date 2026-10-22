@@ -93,7 +93,9 @@ def _build_parser() -> argparse.ArgumentParser:
     pd = sub.add_parser("decay", help="条款折旧：退休条件登记与状态（自我删除机制）")
     pd.add_argument("--expiry", help="登记表路径（默认 charter/expiry.yaml）")
     pd.add_argument("--status", choices=["active", "candidate", "retired", "permanent"],
-                    help="只看某一状态的条款")
+                    help="只看某一生命周期状态的条款")
+    pd.add_argument("--review", choices=["draft", "approved", "rejected"],
+                    help="只看某一评审状态的条目")
     pd.add_argument("--json", action="store_true", help="机器可读输出")
 
     prp = sub.add_parser("replay", help="回放审计账本中的会话决策流（治理内核）")
@@ -515,8 +517,9 @@ def cmd_decay(charter: Charter, args: argparse.Namespace) -> int:
         return 2
 
     if args.status:
-        entries = [e for e in report.entries if e.status == args.status]
-        report.entries = entries
+        report.entries = [e for e in report.entries if e.status == args.status]
+    if args.review:
+        report.entries = [e for e in report.entries if e.review == args.review]
 
     if args.json:
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
