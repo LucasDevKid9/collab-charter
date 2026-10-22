@@ -7,7 +7,7 @@
 > Turn a *user-side collaboration charter* from a prompt document into an
 > **loadable, callable, verifiable** execution layer for AI agents.
 
-**90 clauses · 8-stage pipeline · 14 MCP tools · 368 tests · bidirectional clause↔implementation traceability · 330-entry knowledge base**
+**90 clauses · 8-stage pipeline · 14 MCP tools · 421 tests · bidirectional clause↔implementation traceability · 330-entry knowledge base**
 
 ---
 
@@ -70,6 +70,20 @@ PYTHONPATH=src python3 -m collab_charter.anchor \
   --constraints "x+y+z+w>=3; Implies(y==0,w==1)" \
   --decisions "do:x+y+z+w>=4; wait:x+y+z+w==3; skip:x+y+z+w<3" \
   --rounds "|y==0"
+
+# Governance kernel: replay the audit ledger (every handle is recorded automatically;
+# decisions stay explainable and reviewable)
+PYTHONPATH=src python3 -m collab_charter.cli replay --sessions          # list audit sessions
+PYTHONPATH=src python3 -m collab_charter.cli replay <session> --step    # replay event by event
+PYTHONPATH=src python3 -m collab_charter.cli replay --why <decision_id> # explain one decision (why blocked/allowed)
+PYTHONPATH=src python3 -m collab_charter.cli replay <session> --json    # machine-readable export
+
+# Compile the charter into policy IR + risk overview + charter diff
+# (governance kernel · P2-10 lite)
+PYTHONPATH=src python3 -m collab_charter.cli policy --summary           # risk-tier overview
+PYTHONPATH=src python3 -m collab_charter.cli policy --risk critical     # only critical clauses
+PYTHONPATH=src python3 -m collab_charter.cli policy --diff another.yaml # charter diff (what changed)
+PYTHONPATH=src python3 -m collab_charter.cli policy --json              # machine-readable export
 ```
 
 ### 2. Python
@@ -90,6 +104,38 @@ print(out.trace)               # per-station trace (expanded when reasoning is r
 print(out.explain_failures())  # exactly which self-check items failed, and why
 ```
 
+**A note on the reflow self-check (0.8-C4)**: on the full path, `handle()` does not
+auto-deposit memories by default, so 0.8-C4 ("has the feedback been reflowed?") will
+show as not passed — this is a **deliberate safety gate** against writing unconfirmed
+content into long-term memory. Two ways to make it pass:
+
+```python
+# Option A: explicit reflow (deposit the session's key flows)
+session.reflow()
+out = session.handle("confirm once more", constraints=[])
+
+# Option B: whitelist auto-deposit (flows matching the message text or memory_key
+# are stored automatically, passing the check for this run)
+out = session.handle("note this: gate first, then assert", auto_deposit_keys=("gate first",))
+assert out.selfcheck.passed
+```
+
+**Cognitive execution injection (agent-platform wiring point)**: `stage_hooks` applies
+uniformly to **all 8 stations**; `mirror_fn` / `council_fn` let you replace the
+deterministic templates for cognitive mirroring and triangular role council with real
+LLM callbacks (without callbacks it falls back to the templates, staying zero-dependency):
+
+```python
+from collab_charter.router import PipelineStage
+
+out = session.handle(
+    "help me refactor this module",
+    mirror_fn=lambda flows: "mirror: your implicit need is a low-risk refactor",
+    council_fn=lambda flows: real_llm_council(flows),   # real triangular perspectives
+    stage_hooks={PipelineStage.INTENT: tag_flows},      # intercept any station
+)
+```
+
 ### 3. MCP (recommended for agent platforms)
 
 ```json
@@ -104,7 +150,10 @@ print(out.explain_failures())  # exactly which self-check items failed, and why
 ```
 
 Zero dependencies (stdlib-only JSON-RPC over stdio) — copy it into any sandbox and
-it just runs. **14 tools**: clause lookup / clause listing / receipt self-check /
+it just runs. It has passed an end-to-end smoke test with the official `mcp` SDK's
+`ClientSession` (initialize → tools/list → tools/call), so it can complete a handshake
+in real clients such as Claude Code / Cursor.
+**14 tools**: clause lookup / clause listing / receipt self-check /
 routing decision / pipeline execution / conflict arbitration / safety gate /
 prompt diagnosis / memory deposit / memory recall / symbolic-anchor solving /
 knowledge-base search / semantic-field mining / latent semantic field.
@@ -131,12 +180,13 @@ charter/            ① Charter layer    CHARTER.md (human-readable) · charter.
 knowledge/          ② Knowledge layer  lexicon.yaml · styles.yaml · subcultures.yaml (330 entries, 11.1)
 src/collab_charter/ ③ Kernel layer     flows · gates · router · arbiter · memory · selfcheck · session · cli
                                  · lexicon/ (knowledge toolkit) · anchor/ (symbolic solver)
+                                 · governance (DecisionRecord / audit ledger) · policy_ir · sanitize
 interfaces/         ④ Interface layer  mcp_server.py (zero-dependency MCP, 14 tools)
 tools/              ⑤ Tool layer       fcslint/ (feature-cluster diagnosis) · anchor/solve.py (compat shim)
 skills/             ⑥ Skill layer      using-charter · info-flow-protocol · feature-cluster-syntax
                                  · deep-research · authoring-skills · cognitive-anchor
 harnesses/          ⑦ Adapter layer    claude/codex/cursor/gemini manifests · session-start hook · tool-mapping.md
-tests/              ⑧ Verification     368 tests, incl. bidirectional clause↔implementation traceability
+tests/              ⑧ Verification     421 tests, incl. bidirectional clause↔implementation traceability
 docs/              ANALYSIS · ARCHITECTURE · SEMANTIC-FIELD · TRACEABILITY
 ```
 
@@ -181,7 +231,7 @@ no network / no sub-agents) are documented in
 ## Testing
 
 ```bash
-python3 -m pytest -q                              # 368 tests
+python3 -m pytest -q                              # 421 tests
 python3 -m pytest tests/test_traceability.py -v   # clause traceability
 PYTHONPATH=src python3 -m collab_charter.cli verify
 ```

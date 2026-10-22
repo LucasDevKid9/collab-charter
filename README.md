@@ -2,7 +2,7 @@
 
 > 把《用户协作宪章》从一份**提示词文档**，变成 Agent **可加载、可调用、可验证**的执行层。
 
-**90 条条款 · 8 站管线 · 14 个 MCP 工具 · 368 项测试 · 条款↔实现双向追溯 · 330 条知识库**
+**90 条条款 · 8 站管线 · 14 个 MCP 工具 · 421 项测试 · 条款↔实现双向追溯 · 330 条知识库**
 
 [![M8ven Score](https://m8ven.ai/badge/mcp/lucasdevkid9/collab-charter)](https://m8ven.ai/mcp/lucasdevkid9/collab-charter?s=readme)
 
@@ -165,12 +165,13 @@ charter/           ① 宪章层   CHARTER.md（人读） · charter.yaml（★�
 knowledge/         ② 知识层   lexicon.yaml · styles.yaml · subcultures.yaml（330 条，11.1）
 src/collab_charter/ ③ 内核层  flows · gates · router · arbiter · memory · selfcheck · session · cli
                               · lexicon/（知识库四件套） · anchor/（符号求解器）
+                              · governance（DecisionRecord/审计账本） · policy_ir · sanitize
 interfaces/        ④ 接口层   mcp_server.py（零依赖 MCP，14 工具）
 tools/             ⑤ 工具层   fcslint/（特征簇诊断） · anchor/solve.py（兼容 shim）
 skills/            ⑥ 技能层   using-charter · info-flow-protocol · feature-cluster-syntax
-                              · deep-research · authoring-skills
-harnesses/         ⑦ 适配层   claude/codex/cursor 清单 · session-start 钩子 · tool-mapping.md
-tests/             ⑧ 验证层   368 项测试，含条款↔实现双向追溯
+                              · deep-research · authoring-skills · cognitive-anchor
+harnesses/         ⑦ 适配层   claude/codex/cursor/gemini 清单 · session-start 钩子 · tool-mapping.md
+tests/             ⑧ 验证层   421 项测试，含条款↔实现双向追溯
 docs/              ANALYSIS · ARCHITECTURE · SEMANTIC-FIELD · TRACEABILITY
 ```
 
@@ -209,7 +210,7 @@ docs/              ANALYSIS · ARCHITECTURE · SEMANTIC-FIELD · TRACEABILITY
 ## 测试
 
 ```bash
-python3 -m pytest -q                              # 368 项
+python3 -m pytest -q                              # 421 项
 python3 -m pytest tests/test_traceability.py -v   # 条款追溯
 PYTHONPATH=src python3 -m collab_charter.cli verify
 ```
