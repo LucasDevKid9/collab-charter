@@ -4,6 +4,8 @@
 
 **90 条条款 · 8 站管线 · 14 个 MCP 工具 · 368 项测试 · 条款↔实现双向追溯 · 330 条知识库**
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/lucasdevkid9/collab-charter)](https://m8ven.ai/mcp/lucasdevkid9/collab-charter?s=readme)
+
 ---
 
 ## 这是什么
@@ -231,26 +233,4 @@ MIT，见 [LICENSE](LICENSE)。
 
 ---
 
-## English
-
-**collab-charter** turns a Chinese-language *user-side collaboration charter* from a
-prompt document into an executable layer for AI agents.
-
-- **90 clauses** with globally unique, addressable IDs in a single source of truth
-  (`charter/charter.yaml`); human-readable text and code both reference it.
-- **8-stage pipeline** (safety gate → intent → mirror → recall → council → adjudicate →
-  emit → reflow) with a fast path for trivial requests.
-- **Deterministic conflict arbitration** with 5-level priority, every verdict citing its clause.
-- **Safety gate** as a data table (sensitivity × permission), executed, not hard-coded.
-- **330-entry knowledge base** (dictionary / styles / internet subcultures) with a
-  deterministic sparse measure space, distribution weights, and latent-field network
-  analysis — see `docs/SEMANTIC-FIELD.md`.
-- **Symbolic anchoring** (cognitive-anchor v2.0 merged in): z3 full enumeration,
-  AST whitelist sandbox, multi-round drift detection.
-- **14 MCP tools**, zero third-party dependencies (stdlib JSON-RPC over stdio).
-- **368 tests**, including bidirectional clause↔implementation traceability.
-- Skills describe *actions*, never tool names; per-platform differences live in one
-  mapping table, so adding a platform touches no skill or source file.
-
-Use it to give any agent a consistent, auditable, verifiable collaboration protocol —
-and to lint image-generation prompts against a formal feature-cluster grammar.
+**English:** [README_EN.md](README_EN.md) — full English version.
