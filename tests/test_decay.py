@@ -28,9 +28,9 @@ from collab_charter.decay import (
 # ---------------------------------------------------------------------------
 
 class Test登记表加载:
-    def test_默认登记表可加载_71条样例(self, charter: Charter) -> None:
+    def test_默认登记表可加载_90条全集(self, charter: Charter) -> None:
         report = load_expiry(charter=charter)
-        assert len(report.entries) == 71
+        assert len(report.entries) == 90
         assert report.clause_total == len(charter.clauses) == 90
 
     def test_全部id都存在于宪章_无断链(self, charter: Charter) -> None:
@@ -68,8 +68,8 @@ class Test登记表加载:
     def test_评审状态结构稳定(self, charter: Charter) -> None:
         counts = load_expiry(charter=charter).review_counts()
         assert list(counts) == ["draft", "approved", "rejected"]
-        assert counts["draft"] == 30
-        assert counts["approved"] == 41
+        assert counts["draft"] == 28
+        assert counts["approved"] == 62
 
     def test_第〇章全部已批准(self, charter: Charter) -> None:
         report = load_expiry(charter=charter)
@@ -102,9 +102,34 @@ class Test登记表加载:
     def test_第二批条目已全部批准(self, charter: Charter) -> None:
         approved = {e.id for e in load_expiry(charter=charter).entries
                     if e.review == "approved"}
-        assert len(approved) == 41
+        assert len(approved) == 62
         for cid in ("1-C2", "2-P1", "3-R1", "5-R6"):
             assert cid in approved
+
+    def test_第三批下三章全部已登记(self, charter: Charter) -> None:
+        """第十/十一/十二章共 21 条（含前批已登记的 10-R2 / 12.1-A2），应无遗漏。"""
+        report = load_expiry(charter=charter)
+        registered = {e.id for e in report.entries}
+        batch3b = {
+            cid for cid in charter.clauses
+            if cid.split("-")[0].split(".")[0] in {"10", "11", "12"}
+        }
+        assert len(batch3b) == 21
+        assert batch3b <= registered, batch3b - registered
+
+    def test_90条全部登记_覆盖率100(self, charter: Charter) -> None:
+        report = load_expiry(charter=charter)
+        assert len(report.entries) == len(charter.clauses) == 90
+        assert report.coverage == 1.0
+        assert set(charter.clauses) == {e.id for e in report.entries}
+
+    def test_永不退休项都写明了理由(self, charter: Charter) -> None:
+        """M2 收尾的自检：10 条 permanent 必须各有「为什么不能退」。"""
+        permanent = load_expiry(charter=charter).by_status("permanent")
+        assert len(permanent) == 10
+        for e in permanent:
+            assert e.expiry_test.startswith("永不退休"), e.id
+            assert e.note and len(e.note) >= 15, e.id
 
     def test_每条都有合法评审状态(self, charter: Charter) -> None:
         for e in load_expiry(charter=charter).entries:
@@ -112,7 +137,7 @@ class Test登记表加载:
 
     def test_每条退休条件都非空且可证伪(self, charter: Charter) -> None:
         """退休条件必须可观测：数值阈值，或「零 / 全部 / 所有 / 永不」类全称判定。"""
-        markers = ("≥", "≤", "零", "全部", "所有", "永不退休")
+        markers = ("≥", "≤", "100%", "零", "全部", "所有", "永不退休")
         for e in load_expiry(charter=charter).entries:
             assert len(e.expiry_test.strip()) >= 10
             assert any(m in e.expiry_test for m in markers), (
@@ -186,11 +211,11 @@ class Test报告:
     def test_状态计数稳定含零(self, charter: Charter) -> None:
         counts = load_expiry(charter=charter).counts()
         assert list(counts) == list(STATUSES)
-        assert sum(counts.values()) == 71
+        assert sum(counts.values()) == 90
 
     def test_覆盖率按全部条款计算(self, charter: Charter) -> None:
         report = load_expiry(charter=charter)
-        assert report.coverage == pytest.approx(71 / 90)
+        assert report.coverage == pytest.approx(1.0)
 
     def test_文本报告含三列要素(self, charter: Charter) -> None:
         text = load_expiry(charter=charter).render()
@@ -202,7 +227,7 @@ class Test报告:
     def test_json可序列化且字段齐全(self, charter: Charter) -> None:
         data = load_expiry(charter=charter).to_dict()
         assert data["clause_total"] == 90
-        assert data["registered"] == 71
+        assert data["registered"] == 90
         assert data["entries"][0]["expiry_test"]
         json.dumps(data, ensure_ascii=False)  # 不抛异常即通过
 
@@ -231,7 +256,7 @@ class TestCLI:
 
         assert main(["decay", "--json"]) == 0
         data = json.loads(capsys.readouterr().out)
-        assert data["registered"] == 71
+        assert data["registered"] == 90
 
     def test_cli_decay_按状态过滤(self, capsys: pytest.CaptureFixture[str]) -> None:
         from collab_charter.cli import main
@@ -245,7 +270,7 @@ class TestCLI:
 
         assert main(["decay", "--review", "draft"]) == 0
         out = capsys.readouterr().out
-        assert "待批准 30" in out
+        assert "待批准 28" in out
 
     def test_cli_decay_坏登记表返回2(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]

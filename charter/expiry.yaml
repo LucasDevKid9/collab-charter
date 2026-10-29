@@ -327,125 +327,251 @@ entries:
   - id: 4-V1
     expiry_test: 无本条时首轮即命中真实目标的比例连续 100 次 ≥95%（事后判定）。
     status: active
-    review: draft
+    review: approved
     note: 目标推断是四问中最难的一项；「事后判定」指用户未提出方向性修正。
 
   - id: 4-V2
     expiry_test: 受众判断准确率连续 100 次 ≥95%（按是否返工判定）。
     status: active
-    review: draft
+    review: approved
     note: 受众错判通常表现为深度或术语层级返工。
 
   - id: 4-V3
     expiry_test: 约束遗漏率连续 100 次 ≤2%（交付后发现的遗漏占比）。
     status: active
-    review: draft
+    review: approved
     note: 约束遗漏的代价最高，阈值应比其它维更严。
 
   - id: 4-V4
     expiry_test: 对「卡点」的定位准确率连续 100 次 ≥95%（用户确认定位正确）。
     status: active
-    review: draft
+    review: approved
     note: 需要用户确认环节；无确认则无法计算准确率。
 
   - id: 6-R1
     expiry_test: 平台原生提供按任务授权的文件访问范围控制、默认最小权限的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 沙箱化文件访问已出现，但「默认最小权限」尚未成为产品共识。
 
   - id: 6-R2
     expiry_test: 文件读取失败时如实说明的比例连续 100 次 100%，且零脑补事故。
     status: active
-    review: draft
-    note: 3-R7 在文件场景的特例；三条诚实类条款（3-R7 / 5-R2 / 6-R2）共享同一评审口径。
+    review: approved
+    note: 3-R7 在文件场景的特例；三条诚实类条款（3-R7 / 5-R2 / 6-R2）共享同一评审口径。审查官异议：「100% + 零脑补事故」在统计上不可达，属伪装的「永不」，建议改标 permanent 或降至 ≥99%；主权者批准原案。
 
   - id: 6-R3
     expiry_test: 平台原生提供不可逆操作的「预览 + 确认 + 回滚」三件套且默认启用的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 操作系统级确认已普及，缺的是「预览 + 回滚」的组合。
 
   - id: 7-R1
     expiry_test: 意图误判率（事后返工占比）连续 100 次 ≤2%（与 0.3-I2 / 3-R3 共用指标）。
     status: active
-    review: draft
+    review: approved
     note: 三条同源：0.3-I2 约束流程、3-R3 约束行为、7-R1 约束记忆回流前的对齐。
 
   - id: 7-R2
     expiry_test: 平台原生结构化记忆（标签 / 关联 / 隐私标记）覆盖率 ≥95%（与 0.6-O1 同源）。
     status: active
-    review: draft
+    review: approved
     note: 与 0.6 系列一并评估；本条额外要求「隐私字段标 private」。
 
   - id: 7-R3
     expiry_test: 模型在开放决策上自发呈现三角对冲（建构 / 质疑 / 验证）且分歧标注完整的比例 ≥95%。
     status: active
-    review: draft
+    review: approved
     note: 多视角对冲仍是研究前沿，短期不会退休。
 
   - id: 8-R1
     expiry_test: 渲染层能按内容类型自动选择容器（正文 / 代码 / 引用 / 表格）的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 部分编辑器已做半自动判定；「按性质选用」仍靠模型自觉。
 
   - id: 8-R2
     expiry_test: 事实性结论与代码交付物原生附带来源 / 依赖 / 路径的覆盖率 ≥95%（与 0.8-C3 同源）。
     status: active
-    review: draft
+    review: approved
     note: 四连同源：0.8-C3 / 2-P5 / 5-R2 / 8-R2，应同步退休。
 
   - id: 8-R3
     expiry_test: 客户端原生提供大纲 / 锚点导航的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 长文导航已是常见能力，但内建大纲的客户端仍非全部。
 
   - id: 8-R4
     expiry_test: 平台原生支持自定义快捷指令的覆盖率 ≥95%。
     status: candidate
-    review: draft
+    review: approved
     note: 与 9-W 系列同源：快捷词若由平台承载，词表类条款一并退休。
 
   - id: 8-R5
     expiry_test: 输出冗余度连续 100 次 ≤1.2 倍（人工评分，与 5-R1 / 0.8-C6 共用口径）。
     status: active
-    review: draft
+    review: approved
     note: 三条同源；0.8-C6 是自检、5-R1 是行为、8-R5 是格式。
 
   - id: 9-W1
     expiry_test: 「展开讲讲」类自然语言指令识别准确率 ≥95%（连续 100 次）。
     status: candidate
-    review: draft
+    review: approved
     note: 快捷词的本质是补偿意图识别；识别够准则词表可退。
 
   - id: 9-W2
     expiry_test: 「说短点 / 结论就行」类自然语言指令识别准确率 ≥95%（连续 100 次）。
     status: candidate
-    review: draft
+    review: approved
     note: 与 9-W1 同源，可一并评估。
 
   - id: 9-W3
     expiry_test: 「只讲方法」类自然语言指令识别准确率 ≥95%（连续 100 次）。
     status: active
-    review: draft
+    review: approved
     note: 低频意图，识别难度高于展开 / 压缩。
 
   - id: 9-W4
     expiry_test: 「补来源」类自然语言指令识别准确率 ≥95%（连续 100 次）。
     status: active
-    review: draft
+    review: approved
     note: 与来源类条款共享同一能力上限（0.8-C3 / 5-R2）。
 
   - id: 9-W5
     expiry_test: 「别问了直接做」类指令识别准确率 ≥95% 且该问而未问的误判率 ≤2%。
     status: candidate
-    review: draft
+    review: approved
     note: 双条件：识别准，且不乱跳过必要确认。
 
   - id: 9-W6
     expiry_test: 「多找反例」类自然语言指令识别准确率 ≥95%（连续 100 次）。
     status: active
-    review: draft
+    review: approved
     note: 与 7-R3（三角对冲）能力同源，可一并评估。
+
+  # --------------------------------------------------------------------------
+  # 第十 / 十一 / 十二章 · 安全边界、知识库、语义场与符号锚定（19 条草稿）
+  #
+  # 本批逼出第二种退休模式，正式提出三类：
+  #   A. 能力替代（capability）——外部平台/模型原生具备该能力，条款失去存在理由
+  #   B. 机制替代（mechanization）——条款被 lint / 测试 / API 契约机械执行，
+  #      人工遵守不再必要（规则不死，只是换了个执行者）
+  #   C. 永不退休（invariant）——不变量与价值序，不因能力或工具变化而消失
+  # 此前 71 条几乎全是 A。第三批（下）里 B 类首次成规模出现：
+  # 11.1-K1、11.1-K2、11.1-K3、11.3-F1、11.3-F2、11.4-M1、11.4-M3、
+  # 12.1-A1、12.1-A3、12.1-A4 都属 B。
+  # --------------------------------------------------------------------------
+  - id: 10-R1
+    expiry_test: 永不退休（价值序：平台安全 / 合规 / 伦理边界优先于本宪章）。
+    status: permanent
+    review: draft
+    note: 不是能力项，是效力序。模型越强，越可能为「完成任务」压过安全边界，因此越需要本条。
+
+  - id: 10-R3
+    expiry_test: 永不退休（隐私边界：只读必需、不外发、不留存、不扩散）。
+    status: permanent
+    review: draft
+    note: 平台若原生提供数据分类与出口管控，只能替代执行手段，不替代边界本身。
+
+  - id: 10-R4
+    expiry_test: 平台原生对所有不可逆操作（资金 / 发布 / 删除 / 对外发送）强制「预览 + 确认」，可绕过率为零，覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 操作系统级确认已普及，但代理自身的对外动作（发信、调 API、发布）仍无统一拦截点。与 6-R3 同源，可一并评估。
+
+  - id: 11.1-K1
+    expiry_test: CI 级 lint 在合并前阻断内联词条，连续 50 次提交零绕过。
+    status: candidate
+    review: draft
+    note: 模式 B（机制替代）。当前无此 lint，条款靠人守；一旦机械阻断，人守即多余。
+
+  - id: 11.1-K2
+    expiry_test: 知识写入期 schema 强制 source / confidence 非空，缺字段即写入失败，覆盖率 100%。
+    status: active
+    review: draft
+    note: 模式 B。现状是加载期软校验：缺字段按「低置信」处理并进 unverified 名单，不阻断写入。
+
+  - id: 11.1-K3
+    expiry_test: 全部知识类 API 响应把 digest 列为必需字段，缺字段即客户端契约失败，覆盖率 100%。
+    status: active
+    review: draft
+    note: 模式 B。digest 已随挖掘结果输出（kb_digest 字段），尚未成为全部知识类工具的必填项。
+
+  - id: 11.2-V1
+    expiry_test: 永不退休（确定性不变量：同输入必同输出）。
+    status: permanent
+    review: draft
+    note: 可复现性不是能力，是可审计的前提。任何形式的随机性都会让「复算」失效。
+
+  - id: 11.2-V2
+    expiry_test: 永不退休（可解释性不变量：只要输出分数，就必须可分解）。
+    status: permanent
+    review: draft
+    note: 总分不可分解 = 不可争辩。这是解释权的归属问题，不是精度问题。
+
+  - id: 11.2-V3
+    expiry_test: 永不退休（不沉淀不变量：任务期空间用后即弃）。
+    status: permanent
+    review: draft
+    note: 临时建构一旦跨会话留存，就成了未经批准的事实库——绕过知识库 SSOT。
+
+  - id: 11.3-F1
+    expiry_test: 社群划分由固定顺序 + 确定性算法推导，随机初始化在 CI 中被拒绝，覆盖率 100%。
+    status: candidate
+    review: draft
+    note: 模式 B。实现已确定性（中心性降序 + id 升序）；缺的是「禁止随机初始化」的显式检查。
+
+  - id: 11.3-F2
+    expiry_test: 语义场 API 的 gaps 字段为必填，缺字段即 schema 失败，覆盖率 100%。
+    status: candidate
+    review: draft
+    note: 模式 B。缺口清单由人读报告输出；成为契约必填项后，条款可退。
+
+  - id: 11.3-F3
+    expiry_test: 永不退休（认识论边界：知识流不是事实流）。
+    status: permanent
+    review: draft
+    note: 语义场只组织「怎么想」，不裁决「是什么」。混淆这两者是本系统最危险的失效模式。
+
+  - id: 11.4-M1
+    expiry_test: 引擎对每个非公开条目自动附带闸门结论，缺字段即 API 报错，覆盖率 100%。
+    status: active
+    review: draft
+    note: 模式 B。当前闸门结论由 CLI 汇总输出，未做到逐条目必填。
+
+  - id: 11.4-M2
+    expiry_test: 平台级网络出口策略默认拒绝未声明的在线检索，可绕过率为零，覆盖率 ≥95%。
+    status: candidate
+    review: draft
+    note: 本条最终应由平台承载，而非由本宪章自律。自律条款在平台具备默认拒绝能力后可退。
+
+  - id: 11.4-M3
+    expiry_test: 语义状态成为 API 必填参数，缺省即报错，覆盖率 100%。
+    status: active
+    review: draft
+    note: 模式 B。当前缺省回落到中性策略并告警；改为必填后条款可退。
+
+  - id: 12.1-A1
+    expiry_test: 多条件决策入口只有 solve() 一条路径，返回结构不含自由文本结论字段，覆盖率 100%。
+    status: candidate
+    review: draft
+    note: 模式 B。只要存在「绕过求解器直接下结论」的路径，本条就必须靠人守。
+
+  - id: 12.1-A3
+    expiry_test: 警告字段为必填透传，缺失即 API 报错，覆盖率 100%。
+    status: candidate
+    review: draft
+    note: 模式 B。截断 / 未覆盖 / 无解三类警告目前靠 CLI 打印，未在返回值中强制。
+
+  - id: 12.1-A4
+    expiry_test: 漂移提示由求解器返回值强制标注，无法静默，覆盖率 100%。
+    status: candidate
+    review: draft
+    note: 模式 B。多轮漂移已能检出；缺的是「不可被调用方丢弃」的结构约束。
+
+  - id: 12.1-A5
+    expiry_test: 互斥性与覆盖率由求解器内置校验，未覆盖即报错，覆盖率 100%。
+    status: active
+    review: draft
+    note: 模式 B。已内置「档位谓词为空」校验与未覆盖计数；尚未做到未覆盖即拒绝返回。
